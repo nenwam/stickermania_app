@@ -2,20 +2,30 @@ import SwiftUI
 
 struct MessageCell: View {
     let message: ChatMessage
-    let hasUnreadMessages: Bool // This should be passed in as a parameter
-    let participants: [String] // Add participants parameter
+    let hasUnreadMessages: Bool
+    let participants: [String]
+    let title: String? // Add title parameter
+    
+    init(message: ChatMessage, hasUnreadMessages: Bool, participants: [String], title: String?) {
+        self.message = message
+        self.hasUnreadMessages = hasUnreadMessages
+        self.participants = participants
+        self.title = title
+        print("Title: \(title ?? "No title")")
+    }
     
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text((message.text?.count ?? 0 > 50) ? String(message.text?.prefix(50) ?? "") + "..." : message.text ?? "")
+                Text(title ?? participants.joined(separator: ", ")) // Show title if available, otherwise show participants
                     .foregroundColor(.primary)
-                
-                Text(message.timestamp, style: .time)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .fontWeight(.medium)
                 
                 Text(participants.joined(separator: ", "))
+                    .foregroundColor(.secondary)
+                    .font(.subheadline)
+                
+                Text(message.timestamp, style: .time)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -45,7 +55,8 @@ struct MessageCell_Previews: PreviewProvider {
                 timestamp: Date()
             ),
             hasUnreadMessages: true,
-            participants: ["user1", "user2"]
+            participants: ["user1", "user2"],
+            title: "Team Chat"
         )
     }
 }

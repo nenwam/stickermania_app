@@ -10,24 +10,24 @@ class AuthViewModel: ObservableObject {
     
     init() {
         listenToAuthState()
+        print("AuthViewModel initialized")
     }
 
     private func listenToAuthState() {
         Auth.auth().addStateDidChangeListener { [weak self] auth, user in
             self?.isUserSignedIn = (user != nil)
-            if let user = user {
-                let userId = user.email?.components(separatedBy: "@").first ?? ""
-                print("Current user ID: \(userId)")
-                self?.fetchUserRole(userId: userId)
+            if let user = user, let email = user.email {
+                print("Current user email: \(email)")
+                self?.fetchUserRole(email: email)
             } else {
                 self?.userRole = nil
             }
         }
     }
     
-    private func fetchUserRole(userId: String) {
-        print("Fetching role for user ID: \(userId)")
-        userService.fetchUserRole(userId: userId) { [weak self] result in
+    private func fetchUserRole(email: String) {
+        print("Fetching role for user email: \(email)")
+        userService.fetchUserRole(email: email) { [weak self] result in
             switch result {
             case .success(let role):
                 DispatchQueue.main.async {

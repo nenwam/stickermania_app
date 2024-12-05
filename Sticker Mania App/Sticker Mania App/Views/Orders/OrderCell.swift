@@ -48,16 +48,17 @@ struct OrderCell_Previews: PreviewProvider {
     static var previews: some View {
         OrderCell(order: Order(
             id: "123",
-            customerId: "customer1",
-            accountManagerId: "manager1",
+            customerEmail: "customer@example.com",
+            accountManagerEmail: "manager@example.com", 
             brandId: "brand1",
             brandName: "Brand 1",
             items: [
-                OrderItem(id: "item1", name: "Sticker Pack 1", quantity: 2, price: 9.99, productType: .qpBag)
+                OrderItem(id: "item1", name: "Sticker Pack 1", quantity: 2, price: 9.99, productType: .sticker)
             ],
             status: .pending,
             createdAt: Date(),
-            totalAmount: 19.98
+            totalAmount: 19.98,
+            attachments: []
         ))
         .previewLayout(.sizeThatFits)
         .padding()

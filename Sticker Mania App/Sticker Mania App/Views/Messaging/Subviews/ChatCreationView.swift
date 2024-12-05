@@ -5,7 +5,7 @@ struct ChatCreationView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = ChatCreationViewModel()
     @State private var selectedParticipants: [String] = []
-    @State private var initialMessage: String = ""
+    @State private var chatTitle: String = ""
     @State private var selectedChatType: ChatType = .team
     
     var body: some View {
@@ -22,14 +22,14 @@ struct ChatCreationView: View {
                     }
                 }
                 
+                Section(header: Text("Chat Title")) {
+                    TextField("Enter chat title...", text: $chatTitle)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                }
+                
                 Section(header: Text("Participants")) {
                     // TODO: Add participant selection UI
                     ChatParticipantSelectView(selectedParticipants: $selectedParticipants)
-                }
-                
-                Section(header: Text("Initial Message")) {
-                    TextField("Type your message...", text: $initialMessage)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
             }
             .navigationTitle("New Chat")
@@ -38,10 +38,10 @@ struct ChatCreationView: View {
                     dismiss()
                 },
                 trailing: Button("Create") {
-                    viewModel.createChat(participants: selectedParticipants, initialMessage: initialMessage, chatType: selectedChatType)
+                    viewModel.createChat(participants: selectedParticipants, title: chatTitle, chatType: selectedChatType)
                     dismiss()
                 }
-                .disabled(selectedParticipants.isEmpty || initialMessage.isEmpty)
+                .disabled(selectedParticipants.isEmpty || chatTitle.isEmpty)
             )
         }
     }

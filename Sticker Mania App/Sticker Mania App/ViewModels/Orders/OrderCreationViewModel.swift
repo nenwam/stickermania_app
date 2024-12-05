@@ -1,5 +1,6 @@
 import SwiftUI
 import FirebaseFirestore
+import FirebaseStorage
 
 class OrderCreationViewModel: ObservableObject {
     @Published var customerId = ""
@@ -10,12 +11,14 @@ class OrderCreationViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var orders: [Order] = []
     @Published var isLoading = false
-    @Published var createdOrder: Order?  // Add this property
-    @Published var brands: [Brand] = [] // State variable for brands
-    @Published var selectedBrand: Brand? // State variable for selected brand
+    @Published var createdOrder: Order?
+    @Published var brands: [Brand] = []
+    @Published var selectedBrand: Brand?
+    @Published var attachments: [OrderAttachment] = []
 
     private let controller = OrderCreationController()
     private let orderController = OrderListController()
+    private let storage = Storage.storage()
     
     var totalAmount: Double {
         items.reduce(0) { total, item in
@@ -27,7 +30,19 @@ class OrderCreationViewModel: ObservableObject {
     }
     
     var isValid: Bool {
-        !customerId.isEmpty && !items.isEmpty && !brandId.isEmpty && !brandName.isEmpty
+        if (customerId.isEmpty) {
+            print("Customer ID is empty")
+        }
+        if (items.isEmpty) {
+            print("Items are empty")
+        }
+        if (brandId.isEmpty) {
+            print("Brand ID is empty")
+        }
+        if (brandName.isEmpty) {
+            print("Brand name is empty")
+        }
+        return !customerId.isEmpty && !items.isEmpty
     }
     
     func addItem(_ item: OrderItem) {
@@ -36,6 +51,53 @@ class OrderCreationViewModel: ObservableObject {
     
     func removeItem(at index: Int) {
         items.remove(at: index)
+    }
+    
+    func addAttachment(_ attachment: OrderAttachment) {
+        attachments.append(attachment)
+    }
+    
+    func removeAttachment(at index: Int) {
+        attachments.remove(at: index)
+    }
+    
+    func uploadAttachment(_ data: Data, type: OrderAttachment.AttachmentType, name: String, completion: @escaping (Result<OrderAttachment, Error>) -> Void) {
+        let storageRef = storage.reference()
+        let fileName = "\(UUID().uuidString)_\(name)"
+        let fileExtension = type == .image ? "jpg" : "pdf"
+        let path = "orders/\(customerId)/attachments/\(fileName).\(fileExtension)"
+        let fileRef = storageRef.child(path)
+        
+        let metadata = StorageMetadata()
+        metadata.contentType = type == .image ? "image/jpeg" : "application/pdf"
+        
+        fileRef.putData(data, metadata: metadata) { metadata, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            fileRef.downloadURL { url, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                
+                guard let downloadURL = url else {
+                    completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to get download URL"])))
+                    return
+                }
+                
+                let attachment = OrderAttachment(
+                    id: UUID().uuidString,
+                    url: downloadURL.absoluteString,
+                    type: type,
+                    name: name
+                )
+                
+                completion(.success(attachment))
+            }
+        }
     }
     
     func fetchOrders() {
@@ -81,21 +143,22 @@ class OrderCreationViewModel: ObservableObject {
         
         let order = Order(
             id: UUID().uuidString,
-            customerId: customerId,
-            accountManagerId: "", // TODO: Add account manager ID
+            customerEmail: customerId,
+            accountManagerEmail: "", // TODO: Add account manager email
             brandId: brandId,
             brandName: brandName,
             items: items,
             status: .pending,
             createdAt: Date(),
-            totalAmount: totalAmount
+            totalAmount: totalAmount,
+            attachments: attachments
         )
         
         controller.createOrder(order) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success:
-                    self?.createdOrder = order  // Set the created order
+                    self?.createdOrder = order
                     self?.fetchOrders(forCustomerId: self?.customerId ?? "")
                 case .failure(let error):
                     self?.showError = true
@@ -107,7 +170,6 @@ class OrderCreationViewModel: ObservableObject {
         return order
     }
 
-    // Function to fetch brands for a selected customer
     func fetchBrands(for customerId: String) {
         print("Fetching brands for customer ID: \(customerId)")
         let db = Firestore.firestore()

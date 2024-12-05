@@ -33,11 +33,14 @@ struct Sticker_Mania_AppApp: App {
                         HomeView() // Full application view
                     case .customer:
                         CustomerHomeView() // Only messages page
+                    case .suspended:
+                        SuspendedView()
                     }
                 }
             } else {
                 LoginView()
             }
+        // HomeView()
         }	
     }
 }

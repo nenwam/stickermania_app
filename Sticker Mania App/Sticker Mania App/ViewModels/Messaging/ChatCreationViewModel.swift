@@ -36,53 +36,54 @@ class ChatCreationViewModel: ObservableObject {
             
             if let documents = snapshot?.documents {
                 self.availableParticipants = documents.compactMap { doc -> String? in
-                    return doc.documentID
+                    return doc.data()["email"] as? String
                 }
             }
         }
     }
     
-    func createChat(participants: [String], initialMessage: String, chatType: ChatType) {
-    isLoading = true
-    
-    var allParticipants = participants
-    let currentUserId = Auth.auth().currentUser?.email?.components(separatedBy: "@").first ?? ""
-    if !allParticipants.contains(currentUserId) {
-        allParticipants.append(currentUserId)
-    }
-    
-    // Initialize unread status for each participant
-    var unreadStatus: [String: Bool] = [:]
-    for participant in allParticipants {
-        unreadStatus[participant] = participant != currentUserId
-    }
-    
-    let messageData: [String: Any] = [
-        "id": UUID().uuidString,
-        "senderId": currentUserId,
-        "text": initialMessage,
-        "timestamp": Timestamp()
-    ]
-    
-    let chatData: [String: Any] = [
-        "participants": allParticipants,
-        "lastMessage": messageData,
-        "lastMessageTimestamp": Timestamp(),
-        "createdAt": Timestamp(),
-        "type": chatType.rawValue,
-        "unreadStatus": unreadStatus // Use dictionary for unread status
-    ]
-    
-    db.collection("chats").addDocument(data: chatData) { [weak self] error in
-        guard let self = self else { return }
-        self.isLoading = false
+    func createChat(participants: [String], title: String, chatType: ChatType) {
+        isLoading = true
         
-        if let error = error {
-            self.error = error
-            return
+        var allParticipants = participants
+        let currentUserEmail = Auth.auth().currentUser?.email ?? ""
+        if !allParticipants.contains(currentUserEmail) {
+            allParticipants.append(currentUserEmail)
+        }
+        
+        // Initialize unread status for each participant
+        var unreadStatus: [String: Bool] = [:]
+        for participant in allParticipants {
+            unreadStatus[participant] = participant != currentUserEmail
+        }
+        
+        let messageData: [String: Any] = [
+            "id": UUID().uuidString,
+            "senderId": currentUserEmail,
+            "text": "Chat created",
+            "timestamp": Timestamp()
+        ]
+        
+        let chatData: [String: Any] = [
+            "participants": allParticipants,
+            "lastMessage": messageData,
+            "lastMessageTimestamp": Timestamp(),
+            "createdAt": Timestamp(),
+            "type": chatType.rawValue,
+            "unreadStatus": unreadStatus,
+            "title": title
+        ]
+        
+        db.collection("chats").addDocument(data: chatData) { [weak self] error in
+            guard let self = self else { return }
+            self.isLoading = false
+            
+            if let error = error {
+                self.error = error
+                return
+            }
         }
     }
-}
     
     func toggleParticipant(_ participantId: String) {
         if selectedParticipants.contains(participantId) {

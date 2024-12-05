@@ -11,6 +11,7 @@ struct UserDetailView: View {
     let userId: String
     @StateObject private var viewModel = UserDetailViewModel()
     @State private var showingBrandEditor = false
+    @State private var showingRoleEditor = false
     
     var body: some View {
         ScrollView {
@@ -19,12 +20,31 @@ struct UserDetailView: View {
             } else if let user = viewModel.user {
                 VStack(spacing: 20) {
                     // Profile Image
-                    Image(systemName: "person.circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 120, height: 120)
-                        .foregroundColor(.gray)
-                        .padding(.top)
+                    Group {
+                        if let profileImageUrl = user.profilePictureUrl,
+                           let url = URL(string: profileImageUrl) {
+                            AsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 120, height: 120)
+                                    .clipShape(Circle())
+                            } placeholder: {
+                                Image(systemName: "person.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 120, height: 120)
+                                    .foregroundColor(.gray)
+                            }
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 120, height: 120)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(.top)
                     
                     // User Info
                     VStack(spacing: 12) {
@@ -36,9 +56,26 @@ struct UserDetailView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         
-                        Text("Role: \(user.role.rawValue.capitalized)")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                        HStack {
+                            Text("Role: \(user.role.rawValue.capitalized)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            
+                            
+                                Button(action: {
+                                    showingRoleEditor = true
+                                }) {
+                                    Image(systemName: "pencil.circle")
+                                        .foregroundColor(.blue)
+                                }
+                                .sheet(isPresented: $showingRoleEditor) {
+                                    RoleSelectionView(currentRole: user.role) { newRole in
+                                        viewModel.updateRole(to: newRole)
+                                        showingRoleEditor = false
+                                    }
+                                }
+                            
+                        }
                     }
                     
                     // Brands Section
@@ -48,11 +85,16 @@ struct UserDetailView: View {
                                 Text("Associated Brands")
                                     .font(.headline)
                                 Spacer()
-                                Button(action: {
-                                    showingBrandEditor = true
-                                }) {
-                                    Image(systemName: "pencil.circle.fill")
-                                        .foregroundColor(.blue)
+                                NavigationLink(isActive: $showingBrandEditor) {
+                                    BrandSelectionView(selectedBrands: user.brands ?? [], onSave: { updatedBrands in
+                                        viewModel.updateBrands(brands: updatedBrands)
+                                        showingBrandEditor = false
+                                    })
+                                    .navigationTitle("Edit Brands")
+                                } label: {
+                                    EditBrandsButton(onEdit: {
+                                        showingBrandEditor = true
+                                    })
                                 }
                             }
                             .padding(.horizontal)
@@ -73,22 +115,6 @@ struct UserDetailView: View {
                                     .cornerRadius(8)
                                     .padding(.horizontal)
                                 }
-                            }
-                        }
-                        .sheet(isPresented: $showingBrandEditor) {
-                            NavigationView {
-                                BrandSelectionView(selectedBrands: user.brands ?? [], onSave: { updatedBrands in
-                                    viewModel.updateBrands(brands: updatedBrands)
-                                })
-                                .navigationTitle("Edit Brands")
-                                .navigationBarItems(
-                                    leading: Button("Cancel") {
-                                        showingBrandEditor = false
-                                    },
-                                    trailing: Button("Save") {
-                                        showingBrandEditor = false
-                                    }
-                                )
                             }
                         }
                     }

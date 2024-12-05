@@ -8,7 +8,6 @@ class OrderListController {
             .order(by: "createdAt", descending: true)
             .getDocuments { snapshot, error in
                 if let error = error {
-
                     completion(.failure(error))
                     return
                 }
@@ -20,10 +19,22 @@ class OrderListController {
                 
                 let orders = documents.compactMap { document -> Order? in
                     let data = document.data()
+                    
+                    let attachments = (data["attachments"] as? [[String: Any]] ?? []).compactMap { attachmentData -> OrderAttachment? in
+                        guard let id = attachmentData["id"] as? String,
+                              let url = attachmentData["url"] as? String,
+                              let typeString = attachmentData["type"] as? String,
+                              let type = OrderAttachment.AttachmentType(rawValue: typeString),
+                              let name = attachmentData["name"] as? String else {
+                            return nil
+                        }
+                        return OrderAttachment(id: id, url: url, type: type, name: name)
+                    }
+                    
                     return Order(
                         id: document.documentID,
-                        customerId: data["customerId"] as? String ?? "",
-                        accountManagerId: data["accountManagerId"] as? String ?? "",
+                        customerEmail: data["customerEmail"] as? String ?? "",
+                        accountManagerEmail: data["accountManagerEmail"] as? String ?? "",
                         brandId: data["brandId"] as? String ?? "",
                         brandName: data["brandName"] as? String ?? "",
                         items: (data["items"] as? [[String: Any]] ?? []).compactMap { itemData in
@@ -37,7 +48,8 @@ class OrderListController {
                         },
                         status: OrderStatus(rawValue: data["status"] as? String ?? "") ?? .pending,
                         createdAt: (data["createdAt"] as? Timestamp)?.dateValue() ?? Date(),
-                        totalAmount: data["totalAmount"] as? Double ?? 0.0
+                        totalAmount: data["totalAmount"] as? Double ?? 0.0,
+                        attachments: attachments
                     )
                 }
                 
@@ -45,9 +57,9 @@ class OrderListController {
             }
     }
     
-    func fetchOrders(forCustomerId customerId: String, completion: @escaping (Result<[Order], Error>) -> Void) {
+    func fetchOrders(forCustomerId customerEmail: String, completion: @escaping (Result<[Order], Error>) -> Void) {
         db.collection("orders")
-            .whereField("customerId", isEqualTo: customerId)
+            .whereField("customerEmail", isEqualTo: customerEmail)
             .order(by: "createdAt", descending: true)
             .getDocuments { snapshot, error in
                 if let error = error {
@@ -70,10 +82,22 @@ class OrderListController {
                 
                 let orders = documents.compactMap { document -> Order? in
                     let data = document.data()
+                    
+                    let attachments = (data["attachments"] as? [[String: Any]] ?? []).compactMap { attachmentData -> OrderAttachment? in
+                        guard let id = attachmentData["id"] as? String,
+                              let url = attachmentData["url"] as? String,
+                              let typeString = attachmentData["type"] as? String,
+                              let type = OrderAttachment.AttachmentType(rawValue: typeString),
+                              let name = attachmentData["name"] as? String else {
+                            return nil
+                        }
+                        return OrderAttachment(id: id, url: url, type: type, name: name)
+                    }
+                    
                     return Order(
                         id: document.documentID,
-                        customerId: data["customerId"] as? String ?? "",
-                        accountManagerId: data["accountManagerId"] as? String ?? "",
+                        customerEmail: data["customerEmail"] as? String ?? "",
+                        accountManagerEmail: data["accountManagerEmail"] as? String ?? "",
                         brandId: data["brandId"] as? String ?? "",
                         brandName: data["brandName"] as? String ?? "",
                         items: (data["items"] as? [[String: Any]] ?? []).compactMap { itemData in
@@ -87,11 +111,40 @@ class OrderListController {
                         },
                         status: OrderStatus(rawValue: data["status"] as? String ?? "") ?? .pending,
                         createdAt: (data["createdAt"] as? Timestamp)?.dateValue() ?? Date(),
-                        totalAmount: data["totalAmount"] as? Double ?? 0.0
+                        totalAmount: data["totalAmount"] as? Double ?? 0.0,
+                        attachments: attachments
                     )
                 }
                 
                 completion(.success(orders))
+            }
+    }
+    
+    func fetchBrands(forCustomerId customerEmail: String, completion: @escaping (Result<[Brand], Error>) -> Void) {
+        db.collection("users")
+            .document(customerEmail)
+            .getDocument { snapshot, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                
+                guard let document = snapshot, document.exists,
+                      let data = document.data(),
+                      let brandsData = data["brands"] as? [[String: Any]] else {
+                    completion(.success([]))
+                    return
+                }
+                
+                let brands = brandsData.compactMap { brandData -> Brand? in
+                    guard let id = brandData["id"] as? String,
+                          let name = brandData["name"] as? String else {
+                        return nil
+                    }
+                    return Brand(id: id, name: name)
+                }
+                
+                completion(.success(brands))
             }
     }
 }

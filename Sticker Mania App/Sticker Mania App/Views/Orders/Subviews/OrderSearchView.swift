@@ -1,6 +1,13 @@
+//
+//  OrderSearchView.swift
+//  Sticker Mania App
+//
+//  Created by Connor on 12/2/24.
+//
+
 import SwiftUI
 
-struct UserSearchView: View {
+struct OrderSearchView: View {
     @State private var searchText = ""
     @State private var searchResults: [User] = []
     @StateObject private var viewModel = ChatParticipantSelectViewModel()
@@ -20,35 +27,26 @@ struct UserSearchView: View {
             // Search results
             if !searchText.isEmpty {
                 List(viewModel.filteredUsers, id: \.id) { user in
-                    NavigationLink(destination: UserDetailView(userId: user.id)) {
+                    NavigationLink(destination: OrderListView(customerId: user.email)) {
                         HStack {
-                            if let profileImageUrl = user.profilePictureUrl,
-                               let url = URL(string: profileImageUrl) {
-                                AsyncImage(url: url) { image in
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 40, height: 40)
-                                        .clipShape(Circle())
-                                } placeholder: {
-                                    Circle()
-                                        .fill(Color.gray)
-                                        .frame(width: 40, height: 40)
-                                }
-                            } else {
-                                Circle()
-                                    .fill(Color.gray)
-                                    .frame(width: 40, height: 40)
+                            AsyncImage(url: URL(string: user.profilePictureUrl ?? "")) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            } placeholder: {
+                                Image(systemName: "person.circle.fill")
+                                    .foregroundColor(.gray)
                             }
+                            .frame(width: 40, height: 40)
+                            .clipShape(Circle())
                             
                             VStack(alignment: .leading) {
                                 Text(user.name)
                                     .font(.headline)
-                                Text("ID: \(user.id)")
+                                Text(user.email)
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
                             }
-                            .padding(.leading, 8)
                         }
                     }
                 }
@@ -64,6 +62,6 @@ struct UserSearchView: View {
 
 #Preview {
     NavigationView {
-        UserSearchView()
+        OrderSearchView()
     }
 }

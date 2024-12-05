@@ -8,6 +8,7 @@ class ChatDetailViewModel: ObservableObject {
     @Published var hasMoreMessages = true
     @Published var participants: [User] = []
     @Published var chatType: ChatType = .team
+    @Published var participantNames: [String: String] = [:] // Cache for participant names
     
     private var lastDocument: DocumentSnapshot?
     private var listener: ListenerRegistration?
@@ -34,7 +35,7 @@ class ChatDetailViewModel: ObservableObject {
             self.hasMoreMessages = !documents.isEmpty
 
             // Check if the current user is not the sender of the last message
-            if let lastMessage = self.messages.last, lastMessage.senderId != self.currentUserId() {
+            if let lastMessage = self.messages.last, lastMessage.senderId != Auth.auth().currentUser?.email {
                 // Mark messages as read asynchronously
                 Task {
                     await self.updateUnreadStatus(chatId: chatId)
@@ -46,11 +47,13 @@ class ChatDetailViewModel: ObservableObject {
         db.collection("chats").document(chatId).getDocument { [weak self] snapshot, error in
             guard let self = self,
                   let data = snapshot?.data(),
-                  let participantIds = data["participants"] as? [String],
+                  let participantEmails = data["participants"] as? [String],
                   let chatTypeString = data["type"] as? String else {
                 print("Error fetching chat data: \(error?.localizedDescription ?? "Unknown error")")
                 return
             }
+
+            print("Participant emails: \(participantEmails)")
             
             // Set chat type
             DispatchQueue.main.async {
@@ -58,22 +61,61 @@ class ChatDetailViewModel: ObservableObject {
             }
             
             // Fetch each participant's user data
-            for participantId in participantIds {
-                db.collection("users").document(participantId).getDocument { snapshot, error in
+            for participantEmail in participantEmails {
+                db.collection("users").document(participantEmail).getDocument { [weak self] snapshot, error in
+                    guard let self = self else { return }
+                    
                     if let error = error {
                         print("Error fetching participant data: \(error.localizedDescription)")
                         return
                     }
                     
+                    print("Fetching participant data for email: \(participantEmail)")
+                    
                     if let userData = try? snapshot?.data(as: User.self) {
                         DispatchQueue.main.async {
-                            if !self.participants.contains(where: { $0.id == userData.id }) {
+                            // Check if participant already exists before adding
+                            let participantExists = self.participants.contains { $0.email.trimmingCharacters(in: .whitespaces).lowercased() == userData.email.trimmingCharacters(in: .whitespaces).lowercased() }
+                            
+                            if !participantExists {
                                 self.participants.append(userData)
+                                print("Successfully added participant: \(userData.email)")
+                            } else {
+                                print("Participant already exists: \(userData.email)")
                             }
                         }
+                    } else {
+                        print("Failed to decode user data for: \(participantEmail)")
                     }
                 }
             }
+
+            
+        }
+    }
+
+    func getParticipants(for participantIds: [String], completion: @escaping ([User]) -> Void) {
+        var participants: [User] = []
+        let dispatchGroup = DispatchGroup()
+        
+        for email in participantIds {
+            dispatchGroup.enter()
+            db.collection("users").document(email).getDocument { snapshot, error in
+                defer { dispatchGroup.leave() }
+                
+                if let error = error {
+                    print("Error fetching participant data: \(error.localizedDescription)")
+                    return
+                }
+                
+                if let userData = try? snapshot?.data(as: User.self) {
+                    participants.append(userData)
+                }
+            }
+        }
+        
+        dispatchGroup.notify(queue: .main) {
+            completion(participants)
         }
     }
 
@@ -83,8 +125,6 @@ class ChatDetailViewModel: ObservableObject {
             return
         }
         
-        let currentUserId = currentUserEmail.components(separatedBy: "@").first ?? ""
-        
         do {
             // Fetch the current chat document
             let chatDocument = try await db.collection("chats").document(chatId).getDocument()
@@ -93,7 +133,7 @@ class ChatDetailViewModel: ObservableObject {
                 var unreadStatus = chatData["unreadStatus"] as? [String: Bool] ?? [:]
                 
                 // Mark messages as read for the current user
-                unreadStatus[currentUserId] = false
+                unreadStatus[currentUserEmail] = false
                 
                 // Update the chat document with the new unreadStatus
                 try await db.collection("chats")
@@ -136,13 +176,6 @@ class ChatDetailViewModel: ObservableObject {
             }
         }
     }
-
-    private func currentUserId() -> String {
-        guard let email = Auth.auth().currentUser?.email else {
-            return ""
-        }
-        return email.components(separatedBy: "@").first ?? ""
-    }
     
     func sendMessage(_ text: String, chatId: String) async {
         guard !text.isEmpty else { return }
@@ -153,11 +186,9 @@ class ChatDetailViewModel: ObservableObject {
             return
         }
         
-        let senderId = email.components(separatedBy: "@").first ?? ""
-        
         let message = ChatMessage(
             id: UUID().uuidString,
-            senderId: senderId,
+            senderId: email,
             text: text,
             mediaUrl: nil,
             mediaType: nil,
@@ -180,7 +211,7 @@ class ChatDetailViewModel: ObservableObject {
                 
                 // Update unreadStatus for all participants except the sender
                 for participant in unreadStatus.keys {
-                    unreadStatus[participant] = (participant != senderId)
+                    unreadStatus[participant] = (participant != email)
                 }
                 
                 // Update the chat document with the new unreadStatus and lastMessage
@@ -213,7 +244,6 @@ class ChatDetailViewModel: ObservableObject {
             return
         }
         
-        let senderId = email.components(separatedBy: "@").first ?? ""
         let storageRef = Storage.storage().reference()
         print("Storage reference", storageRef)
         let imageRef = storageRef.child("chatImages/\(UUID().uuidString).jpg")
@@ -235,7 +265,7 @@ class ChatDetailViewModel: ObservableObject {
             // Create a ChatMessage with the image URL
             let message = ChatMessage(
                 id: UUID().uuidString,
-                senderId: senderId,
+                senderId: email,
                 text: nil,
                 mediaUrl: downloadURL.absoluteString,
                 mediaType: .image,
@@ -257,7 +287,7 @@ class ChatDetailViewModel: ObservableObject {
                 
                 // Update unreadStatus for all participants except the sender
                 for participant in unreadStatus.keys {
-                    unreadStatus[participant] = (participant != senderId)
+                    unreadStatus[participant] = (participant != email)
                 }
                 
                 try await db.collection("chats")
@@ -291,7 +321,6 @@ class ChatDetailViewModel: ObservableObject {
             return
         }
         
-        let senderId = email.components(separatedBy: "@").first ?? ""
         let storageRef = Storage.storage().reference()
         let videoRef = storageRef.child("chatVideos/\(UUID().uuidString).mp4")
         
@@ -313,7 +342,7 @@ class ChatDetailViewModel: ObservableObject {
             // Create a ChatMessage with the video URL
             let message = ChatMessage(
                 id: UUID().uuidString,
-                senderId: senderId,
+                senderId: email,
                 text: nil,
                 mediaUrl: downloadURL.absoluteString,
                 mediaType: .video,
@@ -335,7 +364,7 @@ class ChatDetailViewModel: ObservableObject {
                 
                 // Update unreadStatus for all participants except the sender
                 for participant in unreadStatus.keys {
-                    unreadStatus[participant] = (participant != senderId)
+                    unreadStatus[participant] = (participant != email)
                 }
                 
                 try await db.collection("chats")
@@ -369,7 +398,6 @@ class ChatDetailViewModel: ObservableObject {
             return
         }
         
-        let senderId = email.components(separatedBy: "@").first ?? ""
         let storageRef = Storage.storage().reference()
         let pdfRef = storageRef.child("chatPDFs/\(UUID().uuidString).pdf")
         
@@ -391,7 +419,7 @@ class ChatDetailViewModel: ObservableObject {
             // Create a ChatMessage with the PDF URL
             let message = ChatMessage(
                 id: UUID().uuidString,
-                senderId: senderId,
+                senderId: email,
                 text: nil,
                 mediaUrl: downloadURL.absoluteString,
                 mediaType: .pdf,
@@ -413,7 +441,7 @@ class ChatDetailViewModel: ObservableObject {
                 
                 // Update unreadStatus for all participants except the sender
                 for participant in unreadStatus.keys {
-                    unreadStatus[participant] = (participant != senderId)
+                    unreadStatus[participant] = (participant != email)
                 }
                 
                 try await db.collection("chats")

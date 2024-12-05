@@ -47,6 +47,8 @@ class ChatParticipantSelectViewModel: ObservableObject {
                         role = .employee
                     case "admin":
                         role = .admin
+                    case "suspended":
+                        role = .suspended
                     default:
                         continue
                     }
@@ -63,18 +65,26 @@ class ChatParticipantSelectViewModel: ObservableObject {
                         }
                     }
                     
-                    let user = User(id: document.documentID,
+                    // Get profile picture URL if it exists
+                    let profilePictureUrl = data["profilePictureUrl"] as? String
+                    
+                    let user = User(id: email,
                                   email: email,
                                   name: name,
                                   role: role,
-                                  brands: brands)
+                                  brands: brands,
+                                  profilePictureUrl: profilePictureUrl)
                     matchedUsers.append(user)
-                    self.userCache[user.id] = user
+                    self.userCache[user.email] = user
+                    
+                    // Print participant details
+                    print("Found participant - Name: \(name), Email: \(email), Role: \(roleString)")
                 }
             }
             let usersToDisplay = matchedUsers
             await MainActor.run {
                 self.filteredUsers = usersToDisplay
+                print("Total participants found: \(usersToDisplay.count)")
             }
         } catch {
             print("Error searching users: \(error.localizedDescription)")
@@ -84,7 +94,7 @@ class ChatParticipantSelectViewModel: ObservableObject {
         }
     }
     
-    func getUser(by id: String) -> User? {
-        return userCache[id]
+    func getUser(by email: String) -> User? {
+        return userCache[email]
     }
 }

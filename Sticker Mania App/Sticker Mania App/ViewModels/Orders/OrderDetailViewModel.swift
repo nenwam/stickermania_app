@@ -1,5 +1,6 @@
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 class OrderDetailViewModel: ObservableObject {
     @Published var order: Order
@@ -7,41 +8,56 @@ class OrderDetailViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     private let orderDetailController = OrderDetailController()
+    @Published var isCustomer: Bool = false
     
     init(order: Order) {
         self.order = order
+        checkIfCustomer()
+    }
+    
+    private func checkIfCustomer() {
+        guard let currentUser = Auth.auth().currentUser else {
+            isCustomer = false
+            return
+        }
+        
+        isCustomer = currentUser.email == order.customerEmail
     }
 
     func updateOrder(withStatus status: OrderStatus, items: [OrderItem]) {
         order.status = status
         order.items = items
         order.totalAmount = items.reduce(0) { $0 + ($1.price * Double($1.quantity)) }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        orderDetailController.updateOrder(order: order) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+                switch result {
+                case .success:
+                    break
+                case .failure(let error):
+                    self?.errorMessage = error.localizedDescription
+                }
+            }
+        }
     }
     
     func updateOrderStatus(_ newStatus: OrderStatus) {
         isLoading = true
         errorMessage = nil
         
-        let orderRef = db.collection("orders").document(order.id)
-        orderRef.updateData([
-            "status": newStatus.rawValue
-        ]) { [weak self] error in
+        let updates = ["status": newStatus.rawValue]
+        orderDetailController.editOrder(orderId: order.id, updates: updates) { [weak self] result in
             DispatchQueue.main.async {
                 self?.isLoading = false
-                if let error = error {
+                switch result {
+                case .success:
+                    self?.order.status = newStatus
+                case .failure(let error):
                     self?.errorMessage = error.localizedDescription
-                } else {
-                    self?.order = Order(
-                        id: self?.order.id ?? "",
-                        customerId: self?.order.customerId ?? "",
-                        accountManagerId: self?.order.accountManagerId ?? "",
-                        brandId: self?.order.brandId ?? "",
-                        brandName: self?.order.brandName ?? "",
-                        items: self?.order.items ?? [],
-                        status: newStatus,
-                        createdAt: self?.order.createdAt ?? Date(),
-                        totalAmount: self?.order.totalAmount ?? 0.0
-                    )
                 }
             }
         }
@@ -66,10 +82,21 @@ class OrderDetailViewModel: ObservableObject {
                     return
                 }
                 
+                let attachments = (data["attachments"] as? [[String: Any]] ?? []).compactMap { attachmentData -> OrderAttachment? in
+                    guard let id = attachmentData["id"] as? String,
+                          let url = attachmentData["url"] as? String,
+                          let typeString = attachmentData["type"] as? String,
+                          let type = OrderAttachment.AttachmentType(rawValue: typeString),
+                          let name = attachmentData["name"] as? String else {
+                        return nil
+                    }
+                    return OrderAttachment(id: id, url: url, type: type, name: name)
+                }
+                
                 let updatedOrder = Order(
                     id: document.documentID,
-                    customerId: data["customerId"] as? String ?? "",
-                    accountManagerId: data["accountManagerId"] as? String ?? "",
+                    customerEmail: data["customerEmail"] as? String ?? "",
+                    accountManagerEmail: data["accountManagerEmail"] as? String ?? "",
                     brandId: data["brandId"] as? String ?? "",
                     brandName: data["brandName"] as? String ?? "",
                     items: (data["items"] as? [[String: Any]] ?? []).compactMap { itemData in
@@ -83,10 +110,12 @@ class OrderDetailViewModel: ObservableObject {
                     },
                     status: OrderStatus(rawValue: data["status"] as? String ?? "") ?? .pending,
                     createdAt: (data["createdAt"] as? Timestamp)?.dateValue() ?? Date(),
-                    totalAmount: data["totalAmount"] as? Double ?? 0.0
+                    totalAmount: data["totalAmount"] as? Double ?? 0.0,
+                    attachments: attachments
                 )
                 
                 self?.order = updatedOrder
+                self?.checkIfCustomer()
             }
         }
     }
@@ -100,7 +129,6 @@ class OrderDetailViewModel: ObservableObject {
                 self?.isLoading = false
                 switch result {
                 case .success:
-                    // Optionally refresh order details or update local order state
                     self?.refreshOrderDetails()
                 case .failure(let error):
                     self?.errorMessage = error.localizedDescription

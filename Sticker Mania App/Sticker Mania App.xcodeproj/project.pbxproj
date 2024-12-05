@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B355CC812D00D12200A1789D /* BackgroundLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B355CC802D00D12200A1789D /* BackgroundLogo.swift */; };
+		B355CC832D00D8A600A1789D /* ChatMultiCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B355CC822D00D8A600A1789D /* ChatMultiCreationView.swift */; };
+		B355CC852D00D8B300A1789D /* ChatMultiCreationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B355CC842D00D8B300A1789D /* ChatMultiCreationViewModel.swift */; };
+		B368A94B2CFFAA5F00543CAD /* SuspendedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368A94A2CFFAA5F00543CAD /* SuspendedView.swift */; };
+		B368A94D2CFFAC1300543CAD /* RoleSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368A94C2CFFAC1300543CAD /* RoleSelectionView.swift */; };
+		B368A94F2CFFB53700543CAD /* UserCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368A94E2CFFB53700543CAD /* UserCreationView.swift */; };
+		B368A9512CFFB54700543CAD /* UserCreationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368A9502CFFB54700543CAD /* UserCreationViewModel.swift */; };
 		B370E0242CD54A45006D2314 /* ChatParticipantSelectViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370E0232CD54A45006D2314 /* ChatParticipantSelectViewModel.swift */; };
 		B370E0262CD558F2006D2314 /* ChatUserCreationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370E0252CD558F2006D2314 /* ChatUserCreationTest.swift */; };
 		B370E0282CD55E94006D2314 /* ChatParticipantsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370E0272CD55E94006D2314 /* ChatParticipantsView.swift */; };
@@ -15,6 +22,12 @@
 		B375F7912CEFCAD200A6D034 /* IdentifiableURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = B375F7902CEFCAD200A6D034 /* IdentifiableURL.swift */; };
 		B375F7932CEFE38F00A6D034 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B375F7922CEFE38F00A6D034 /* VideoThumbnailView.swift */; };
 		B375F7952CF0105C00A6D034 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = B375F7942CF0105C00A6D034 /* Brand.swift */; };
+		B37F34DD2CFE6BBF004A84FC /* EditBrandsButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B37F34DC2CFE6BBF004A84FC /* EditBrandsButton.swift */; };
+		B37F34DF2CFE7270004A84FC /* OrderSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B37F34DE2CFE7270004A84FC /* OrderSearchView.swift */; };
+		B37F34E32CFE7621004A84FC /* UserProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B37F34E22CFE7621004A84FC /* UserProfileView.swift */; };
+		B37F34E52CFE7979004A84FC /* UserProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B37F34E42CFE7979004A84FC /* UserProfileViewModel.swift */; };
+		B37F34E72CFEAAAD004A84FC /* UserStatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B37F34E62CFEAAAD004A84FC /* UserStatisticsView.swift */; };
+		B37F34E92CFEAAC0004A84FC /* UserStatisticsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B37F34E82CFEAAC0004A84FC /* UserStatisticsViewModel.swift */; };
 		B39A0F9F2CD29C9C00E45AE0 /* OrderCreationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39A0F9E2CD29C9C00E45AE0 /* OrderCreationViewModel.swift */; };
 		B39A0FA12CD29E0200E45AE0 /* OrderCreationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39A0FA02CD29E0200E45AE0 /* OrderCreationController.swift */; };
 		B39A0FA42CD2A17800E45AE0 /* AddOrderItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B39A0FA32CD2A17800E45AE0 /* AddOrderItem.swift */; };
@@ -105,6 +118,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B355CC802D00D12200A1789D /* BackgroundLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLogo.swift; sourceTree = "<group>"; };
+		B355CC822D00D8A600A1789D /* ChatMultiCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMultiCreationView.swift; sourceTree = "<group>"; };
+		B355CC842D00D8B300A1789D /* ChatMultiCreationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMultiCreationViewModel.swift; sourceTree = "<group>"; };
+		B368A94A2CFFAA5F00543CAD /* SuspendedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendedView.swift; sourceTree = "<group>"; };
+		B368A94C2CFFAC1300543CAD /* RoleSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleSelectionView.swift; sourceTree = "<group>"; };
+		B368A94E2CFFB53700543CAD /* UserCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCreationView.swift; sourceTree = "<group>"; };
+		B368A9502CFFB54700543CAD /* UserCreationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCreationViewModel.swift; sourceTree = "<group>"; };
 		B370E0232CD54A45006D2314 /* ChatParticipantSelectViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatParticipantSelectViewModel.swift; sourceTree = "<group>"; };
 		B370E0252CD558F2006D2314 /* ChatUserCreationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatUserCreationTest.swift; sourceTree = "<group>"; };
 		B370E0272CD55E94006D2314 /* ChatParticipantsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatParticipantsView.swift; sourceTree = "<group>"; };
@@ -113,6 +133,12 @@
 		B375F7902CEFCAD200A6D034 /* IdentifiableURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentifiableURL.swift; sourceTree = "<group>"; };
 		B375F7922CEFE38F00A6D034 /* VideoThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailView.swift; sourceTree = "<group>"; };
 		B375F7942CF0105C00A6D034 /* Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brand.swift; sourceTree = "<group>"; };
+		B37F34DC2CFE6BBF004A84FC /* EditBrandsButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditBrandsButton.swift; sourceTree = "<group>"; };
+		B37F34DE2CFE7270004A84FC /* OrderSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderSearchView.swift; sourceTree = "<group>"; };
+		B37F34E22CFE7621004A84FC /* UserProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileView.swift; sourceTree = "<group>"; };
+		B37F34E42CFE7979004A84FC /* UserProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileViewModel.swift; sourceTree = "<group>"; };
+		B37F34E62CFEAAAD004A84FC /* UserStatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStatisticsView.swift; sourceTree = "<group>"; };
+		B37F34E82CFEAAC0004A84FC /* UserStatisticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStatisticsViewModel.swift; sourceTree = "<group>"; };
 		B38183B82CE7FAAB00037399 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B39A0F9E2CD29C9C00E45AE0 /* OrderCreationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderCreationViewModel.swift; sourceTree = "<group>"; };
 		B39A0FA02CD29E0200E45AE0 /* OrderCreationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderCreationController.swift; sourceTree = "<group>"; };
@@ -219,6 +245,7 @@
 			children = (
 				B39A0FA32CD2A17800E45AE0 /* AddOrderItem.swift */,
 				B39A0FAA2CD2AD4000E45AE0 /* OrderEditView.swift */,
+				B37F34DE2CFE7270004A84FC /* OrderSearchView.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
@@ -229,6 +256,7 @@
 				B39A0FA62CD2A35000E45AE0 /* HomeView.swift */,
 				B3B3F1D32CDD3FE4005997A0 /* LoginView.swift */,
 				B3B3F1D72CDD7BB5005997A0 /* CustomerHomeView.swift */,
+				B368A94A2CFFAA5F00543CAD /* SuspendedView.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -259,6 +287,7 @@
 				B370E0272CD55E94006D2314 /* ChatParticipantsView.swift */,
 				B375F78E2CEFCA2500A6D034 /* EnlargedImageView.swift */,
 				B375F7922CEFE38F00A6D034 /* VideoThumbnailView.swift */,
+				B355CC822D00D8A600A1789D /* ChatMultiCreationView.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
@@ -376,6 +405,7 @@
 				B3B0CB372CD19E9300EF664F /* LoadingIndicator.swift */,
 				B3B0CB7C2CD1B22300EF664F /* IdentifiableError.swift */,
 				B375F7902CEFCAD200A6D034 /* IdentifiableURL.swift */,
+				B355CC802D00D12200A1789D /* BackgroundLogo.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -408,6 +438,7 @@
 				B3B0CB3D2CD19E9300EF664F /* ChatListViewModel.swift */,
 				B39A0FBD2CD2F14000E45AE0 /* ChatCreationViewModel.swift */,
 				B370E0232CD54A45006D2314 /* ChatParticipantSelectViewModel.swift */,
+				B355CC842D00D8B300A1789D /* ChatMultiCreationViewModel.swift */,
 			);
 			path = Messaging;
 			sourceTree = "<group>";
@@ -531,6 +562,9 @@
 				B3F799122CF6E2E700B136B8 /* Subviews */,
 				B3F799092CF6DAF400B136B8 /* UserDetailView.swift */,
 				B3F7990B2CF6DD4F00B136B8 /* UserSearchView.swift */,
+				B37F34E22CFE7621004A84FC /* UserProfileView.swift */,
+				B37F34E62CFEAAAD004A84FC /* UserStatisticsView.swift */,
+				B368A94E2CFFB53700543CAD /* UserCreationView.swift */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -540,6 +574,9 @@
 			children = (
 				B3F7990E2CF6DE1000B136B8 /* UserSearchViewModel.swift */,
 				B3F799102CF6E13E00B136B8 /* UserDetailViewModel.swift */,
+				B37F34E42CFE7979004A84FC /* UserProfileViewModel.swift */,
+				B37F34E82CFEAAC0004A84FC /* UserStatisticsViewModel.swift */,
+				B368A9502CFFB54700543CAD /* UserCreationViewModel.swift */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -548,6 +585,8 @@
 			isa = PBXGroup;
 			children = (
 				B3F799132CF6E2F500B136B8 /* BrandSelectionView.swift */,
+				B37F34DC2CFE6BBF004A84FC /* EditBrandsButton.swift */,
+				B368A94C2CFFAC1300543CAD /* RoleSelectionView.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
@@ -700,9 +739,11 @@
 				B3B0CB722CD19E9300EF664F /* UserRole.swift in Sources */,
 				B375F7952CF0105C00A6D034 /* Brand.swift in Sources */,
 				B3B0CB662CD19E9300EF664F /* ChatDetailViewModel.swift in Sources */,
+				B37F34E92CFEAAC0004A84FC /* UserStatisticsViewModel.swift in Sources */,
 				B39A0FB32CD2EB0E00E45AE0 /* ChatMessage.swift in Sources */,
 				B375F78F2CEFCA2500A6D034 /* EnlargedImageView.swift in Sources */,
 				B39A0FAB2CD2AD4000E45AE0 /* OrderEditView.swift in Sources */,
+				B368A9512CFFB54700543CAD /* UserCreationViewModel.swift in Sources */,
 				B39A0FBE2CD2F14000E45AE0 /* ChatCreationViewModel.swift in Sources */,
 				B3B3F1D42CDD3FE4005997A0 /* LoginView.swift in Sources */,
 				B3B0CB6E2CD19E9300EF664F /* OrderItem.swift in Sources */,
@@ -711,6 +752,7 @@
 				B3B0CB6D2CD19E9300EF664F /* Order.swift in Sources */,
 				B375F7932CEFE38F00A6D034 /* VideoThumbnailView.swift in Sources */,
 				B3B0CB5C2CD19E9300EF664F /* AuthenticationService.swift in Sources */,
+				B37F34E52CFE7979004A84FC /* UserProfileViewModel.swift in Sources */,
 				B3B0CAF52CD161E600EF664F /* ContentView.swift in Sources */,
 				B3B0CB672CD19E9300EF664F /* ChatListViewModel.swift in Sources */,
 				B39A0FBA2CD2EE6300E45AE0 /* Chat.swift in Sources */,
@@ -723,26 +765,32 @@
 				B39A0FA72CD2A35000E45AE0 /* HomeView.swift in Sources */,
 				B370E0262CD558F2006D2314 /* ChatUserCreationTest.swift in Sources */,
 				B3B0CB762CD19E9300EF664F /* ChatListController.swift in Sources */,
+				B368A94D2CFFAC1300543CAD /* RoleSelectionView.swift in Sources */,
 				B3B0CB5D2CD19E9300EF664F /* AdminPanelView.swift in Sources */,
 				B39A0FC02CD2F27B00E45AE0 /* ChatParticipantSelectView.swift in Sources */,
 				B3F799142CF6E2F500B136B8 /* BrandSelectionView.swift in Sources */,
 				B39A0FB62CD2EB3B00E45AE0 /* MessageBubble.swift in Sources */,
+				B37F34DF2CFE7270004A84FC /* OrderSearchView.swift in Sources */,
 				B3B3F1D62CDD7562005997A0 /* UserService.swift in Sources */,
 				B3B0CB692CD19E9300EF664F /* OrderListViewModel.swift in Sources */,
 				B370E02A2CD55F1A006D2314 /* ChatType.swift in Sources */,
+				B37F34E32CFE7621004A84FC /* UserProfileView.swift in Sources */,
 				B3B0CB772CD19E9300EF664F /* OrderDetailController.swift in Sources */,
 				B3B0CB702CD19E9300EF664F /* Permissions.swift in Sources */,
 				B3B0CB7B2CD1B05200EF664F /* OrderCreationTest.swift in Sources */,
 				B3B0CB652CD19E9300EF664F /* AdminPanelViewModel.swift in Sources */,
 				B375F7912CEFCAD200A6D034 /* IdentifiableURL.swift in Sources */,
+				B355CC832D00D8A600A1789D /* ChatMultiCreationView.swift in Sources */,
 				B3B3F1D82CDD7BB5005997A0 /* CustomerHomeView.swift in Sources */,
 				B3B0CB792CD19E9300EF664F /* MainTabController.swift in Sources */,
 				B3B0CB5F2CD19E9300EF664F /* ChatListView.swift in Sources */,
 				B3B0CB732CD19E9300EF664F /* PermissionManager.swift in Sources */,
 				B370E0242CD54A45006D2314 /* ChatParticipantSelectViewModel.swift in Sources */,
 				B3B0CB7D2CD1B22300EF664F /* IdentifiableError.swift in Sources */,
+				B368A94B2CFFAA5F00543CAD /* SuspendedView.swift in Sources */,
 				B3B0CB6F2CD19E9300EF664F /* OrderStatus.swift in Sources */,
 				B3B0CB632CD19E9300EF664F /* OrderListView.swift in Sources */,
+				B355CC812D00D12200A1789D /* BackgroundLogo.swift in Sources */,
 				B3B0CB682CD19E9300EF664F /* OrderDetailViewModel.swift in Sources */,
 				B3B0CB5E2CD19E9300EF664F /* ChatDetailView.swift in Sources */,
 				B39A0FBC2CD2F0AA00E45AE0 /* ChatCreationView.swift in Sources */,
@@ -752,7 +800,11 @@
 				B3F7990F2CF6DE1000B136B8 /* UserSearchViewModel.swift in Sources */,
 				B3F7990A2CF6DAF400B136B8 /* UserDetailView.swift in Sources */,
 				B3F7990C2CF6DD4F00B136B8 /* UserSearchView.swift in Sources */,
+				B37F34E72CFEAAAD004A84FC /* UserStatisticsView.swift in Sources */,
+				B368A94F2CFFB53700543CAD /* UserCreationView.swift in Sources */,
+				B355CC852D00D8B300A1789D /* ChatMultiCreationViewModel.swift in Sources */,
 				B3B0CB712CD19E9300EF664F /* User.swift in Sources */,
+				B37F34DD2CFE6BBF004A84FC /* EditBrandsButton.swift in Sources */,
 				B3B0CB612CD19E9300EF664F /* OrderCell.swift in Sources */,
 				B370E0282CD55E94006D2314 /* ChatParticipantsView.swift in Sources */,
 				B39A0FA92CD2A3B100E45AE0 /* OrderCustomerLookupView.swift in Sources */,

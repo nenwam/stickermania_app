@@ -6,51 +6,44 @@ struct HomeView: View {
     @StateObject private var authViewModel = AuthViewModel()
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            OrderCreationView()
-                .tabItem {
-                    Label("New Order", systemImage: "plus.circle")
-                }
-                .tag(0)
+        VStack(spacing: 0) {
+            Image("sm_dice_logo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 40)
+                .padding(.vertical, 2)
             
-            NavigationView {
-                ChatListView()
-                    .navigationTitle("Messages")
-            }
-            .tabItem {
-                Label("Messages", systemImage: "message")
-            }
-            .tag(1)
-            
-            NavigationView {
-                OrderCustomerLookupView()  // Replace the placeholder with the new view
-                    .navigationTitle("Orders")
-            }
-            .tabItem {
-                Label("Orders", systemImage: "doc.text.magnifyingglass")
-            }
-            .tag(2)
-            
-            Button(action: {
-                AuthenticationService.shared.signOut { _ in }
-            }) {
-                VStack {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 24, height: 24)
-                    Text("Sign Out")
-                    if let email = Auth.auth().currentUser?.email {
-                        Text(email.components(separatedBy: "@").first ?? "")
-                            .font(.caption)
-                            .foregroundColor(.gray)
+            TabView(selection: $selectedTab) {
+                OrderCreationView()
+                    .tabItem {
+                        Label("New Order", systemImage: "plus.circle")
                     }
+                    .tag(0)
+                
+                NavigationView {
+                    ChatListView()
                 }
+                .tabItem {
+                    Label("Messages", systemImage: "message")
+                }
+                .tag(1)
+                
+                NavigationView {
+                    OrderCustomerLookupView()  // Replace the placeholder with the new view
+                }
+                .tabItem {
+                    Label("Search", systemImage: "doc.text.magnifyingglass")
+                }
+                .tag(2)
+                
+                NavigationView {
+                    UserProfileView()
+                }
+                .tabItem {
+                    Label("Profile", systemImage: "person.circle")
+                }
+                .tag(3)
             }
-            .tabItem {
-                Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-            }
-            .tag(3)
         }
     }
 }

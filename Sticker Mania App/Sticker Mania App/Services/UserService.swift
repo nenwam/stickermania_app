@@ -10,9 +10,9 @@ import FirebaseFirestore
 
 class UserService {
     private let db = Firestore.firestore()
-
-    func fetchUserRole(userId: String, completion: @escaping (Result<UserRole, Error>) -> Void) {
-        db.collection("users").document(userId).getDocument { snapshot, error in
+    
+    func fetchUserRole(email: String, completion: @escaping (Result<UserRole, Error>) -> Void) {
+        db.collection("users").document(email).getDocument { snapshot, error in
             if let error = error {
                 completion(.failure(error))
                 return

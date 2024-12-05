@@ -5,16 +5,35 @@ struct MessageBubble: View {
     let participants: [User]
     
     private var senderName: String {
-        if message.senderId == Auth.auth().currentUser?.email?.components(separatedBy: "@").first ?? "" {
+        print("Participants: \(participants.map { "\($0.email): \($0.name)" })")
+
+        if message.senderId == Auth.auth().currentUser?.email ?? "" {
             return "You"
         } else {
-            return participants.first(where: { $0.id == message.senderId })?.name ?? message.senderId
+            // Print debug info
+            print("Message sender ID:", message.senderId)
+            print("Participants:", participants.map { "\($0.email): \($0.name)" })
+            
+            // Trim whitespace and compare case-insensitively
+            if let participant = participants.first(where: { participant in
+                print("Comparing \(participant.email) with \(message.senderId)")
+                let normalizedParticipantEmail = participant.email.trimmingCharacters(in: .whitespaces).lowercased()
+                let normalizedSenderId = message.senderId.trimmingCharacters(in: .whitespaces).lowercased()
+                return normalizedParticipantEmail == normalizedSenderId
+            }) {
+                return participant.name
+            } else {
+                // Additional debug info
+                print("No matching participant found for sender ID:", message.senderId)
+                print("Available participant emails:", participants.map { $0.email })
+                return "Unknown User"
+            }
         }
     }
     
     var body: some View {
         HStack {
-            if message.senderId == Auth.auth().currentUser?.email?.components(separatedBy: "@").first ?? "" {
+            if message.senderId == Auth.auth().currentUser?.email ?? "" {
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(senderName)

@@ -19,7 +19,7 @@ class OrderEditViewModel: ObservableObject {
 
     func validateItems() -> Bool {
         for item in items {
-            if item.name.isEmpty || item.quantity <= 0 || item.price < 0 {
+            if item.name.isEmpty || item.quantity <= 0 {
                 errorMessage = IdentifiableError(message: "Invalid item details")
                 return false
             }
@@ -37,7 +37,8 @@ class OrderEditViewModel: ObservableObject {
                 "id": $0.id,
                 "name": $0.name,
                 "quantity": $0.quantity,
-                "price": $0.price
+                "price": $0.price,
+                "productType": $0.productType.rawValue
             ]},
             "totalAmount": totalAmount // Include total amount in updates
         ]

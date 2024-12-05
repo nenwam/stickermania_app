@@ -7,14 +7,16 @@ struct Chat: Identifiable {
     let lastMessage: ChatMessage
     let type: ChatType
     let unreadStatus: [String: Bool] // Updated to track unread status per participant
+    let title: String? // Optional chat title
 
     // Updated initializer
-    init(id: String, participants: [String], lastMessage: ChatMessage, type: ChatType, unreadStatus: [String: Bool] = [:]) {
+    init(id: String, participants: [String], lastMessage: ChatMessage, type: ChatType, unreadStatus: [String: Bool] = [:], title: String? = nil) {
         self.id = id
         self.participants = participants
         self.lastMessage = lastMessage
         self.type = type
         self.unreadStatus = unreadStatus
+        self.title = title
     }
 
     init?(document: DocumentSnapshot) {
@@ -45,7 +47,8 @@ struct Chat: Identifiable {
             participants: participants,
             lastMessage: lastMessage,
             type: type,
-            unreadStatus: unreadStatus
+            unreadStatus: unreadStatus,
+            title: data?["title"] as? String
         )
     }
 

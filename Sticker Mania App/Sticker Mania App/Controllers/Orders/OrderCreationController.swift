@@ -5,8 +5,8 @@ class OrderCreationController {
     
     func createOrder(_ order: Order, completion: @escaping (Result<Void, Error>) -> Void) {
         let orderData: [String: Any] = [
-            "customerId": order.customerId,
-            "accountManagerId": order.accountManagerId,
+            "customerEmail": order.customerEmail,
+            "accountManagerEmail": order.accountManagerEmail,
             "brandId": order.brandId,
             "brandName": order.brandName,
             "items": order.items.map { item in
@@ -20,7 +20,15 @@ class OrderCreationController {
             },
             "status": order.status.rawValue,
             "createdAt": Timestamp(date: order.createdAt),
-            "totalAmount": order.totalAmount
+            "totalAmount": order.totalAmount,
+            "attachments": order.attachments.map { attachment in
+                [
+                    "id": attachment.id,
+                    "url": attachment.url,
+                    "type": attachment.type.rawValue,
+                    "name": attachment.name
+                ]
+            }
         ]
         
         db.collection("orders").document(order.id).setData(orderData) { error in

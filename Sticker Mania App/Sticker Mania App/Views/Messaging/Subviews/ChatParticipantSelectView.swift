@@ -3,13 +3,12 @@ import SwiftUI
 struct ChatParticipantSelectView: View {
     @Binding var selectedParticipants: [String]
     @State private var searchText = ""
-    @State private var filteredUsers: [User] = []
     @StateObject private var viewModel = ChatParticipantSelectViewModel()
     
     var body: some View {
         VStack {
             // Search input
-            TextField("Search users...", text: $searchText)
+            TextField("Search users by name or email...", text: $searchText)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
                 .onChange(of: searchText) { newValue in
@@ -22,22 +21,32 @@ struct ChatParticipantSelectView: View {
             if !searchText.isEmpty {
                 List(viewModel.filteredUsers, id: \.id) { user in
                     HStack {
-                        Text(user.name) // Ensure this is a String
+                        VStack(alignment: .leading) {
+                            Text(user.name)
+                                .font(.headline)
+                            Text(user.email)
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
                         Spacer()
-                        if selectedParticipants.contains(user.id) {
+                        if selectedParticipants.contains(user.email) {
                             Image(systemName: "checkmark")
                                 .foregroundColor(.blue)
                         }
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        if let index = selectedParticipants.firstIndex(of: user.id) {
+                        if let index = selectedParticipants.firstIndex(of: user.email) {
                             selectedParticipants.remove(at: index)
                         } else {
-                            selectedParticipants.append(user.id)
+                            selectedParticipants.append(user.email)
                         }
                     }
                 }
+            } else {
+                Text("Enter a name or email to search")
+                    .foregroundColor(.gray)
+                    .padding(.top)
             }
             
             // Selected participants
@@ -45,7 +54,7 @@ struct ChatParticipantSelectView: View {
                 HStack {
                     ForEach($selectedParticipants, id: \.self) { $participantId in
                         if let user = viewModel.getUser(by: participantId) {
-                            Chip(text: user.name) {
+                            Chip(text: "\(user.name) (\(user.email))") {
                                 if let index = selectedParticipants.firstIndex(of: participantId) {
                                     selectedParticipants.remove(at: index)
                                 }
@@ -79,7 +88,6 @@ struct Chip: View {
         .clipShape(Capsule())
     }
 }
-
 
 #Preview {
     ChatParticipantSelectView(selectedParticipants: .constant([]))

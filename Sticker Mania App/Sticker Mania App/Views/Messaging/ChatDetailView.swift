@@ -12,8 +12,10 @@ struct ChatDetailView: View {
     @State private var enlargedImage: IdentifiableURL?
     @State private var showingDocumentPicker = false
     @State private var showingPhotoPicker = false // New state variable
+    @State private var messageParticipants: [User] = []
 
     private let messagesPerPage = 20
+    
 
     var body: some View {
         VStack {
@@ -211,6 +213,7 @@ struct ChatDetailView: View {
             Task {
                 await viewModel.updateUnreadStatus(chatId: chatId)
             }
+            print("Participants in viewModel: \(viewModel.participants.map { $0.email })")
         }
         .onDisappear {
             viewModel.stopListening()

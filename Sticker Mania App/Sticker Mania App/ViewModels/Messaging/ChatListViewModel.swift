@@ -14,11 +14,10 @@ class ChatListViewModel: ObservableObject {
         isLoading = true
         
         // Query chats where current user is a participant
-        let currentUserId = Auth.auth().currentUser?.email
-        let userId = currentUserId?.components(separatedBy: "@").first ?? ""
+        guard let currentUserEmail = Auth.auth().currentUser?.email else { return }
         
         let query = db.collection("chats")
-            .whereField("participants", arrayContains: userId)
+            .whereField("participants", arrayContains: currentUserEmail)
             .order(by: "lastMessageTimestamp", descending: true)
         
         listener = query.addSnapshotListener { [weak self] (snapshot: QuerySnapshot?, error: Error?) in
@@ -60,12 +59,15 @@ class ChatListViewModel: ObservableObject {
                     timestamp: timestamp
                 )
                 
+                let title = data["title"] as? String
+                
                 return Chat(
                     id: document.documentID,
                     participants: participants,
                     lastMessage: lastMessage,
                     type: type,
-                    unreadStatus: unreadStatus
+                    unreadStatus: unreadStatus,
+                    title: title
                 )
             }
         }
@@ -75,12 +77,12 @@ class ChatListViewModel: ObservableObject {
         var names: [String] = []
         let dispatchGroup = DispatchGroup()
         
-        for participantId in participantIds {
-            if let cachedName = participantNames[participantId] {
+        for email in participantIds {
+            if let cachedName = participantNames[email] {
                 names.append(cachedName)
             } else {
                 dispatchGroup.enter()
-                db.collection("users").document(participantId).getDocument { [weak self] snapshot, error in
+                db.collection("users").whereField("email", isEqualTo: email).getDocuments { [weak self] snapshot, error in
                     defer { dispatchGroup.leave() }
                     
                     if let error = error {
@@ -88,11 +90,13 @@ class ChatListViewModel: ObservableObject {
                         return
                     }
                     
-                    if let data = snapshot?.data(), let name = data["name"] as? String {
-                        self?.participantNames[participantId] = name
+                    if let document = snapshot?.documents.first,
+                       let data = document.data() as? [String: Any],
+                       let name = data["name"] as? String {
+                        self?.participantNames[email] = name
                         names.append(name)
                     } else {
-                        names.append(participantId) // Fallback to ID if name is not found
+                        names.append(email) // Fallback to email if name is not found
                     }
                 }
             }
@@ -100,6 +104,21 @@ class ChatListViewModel: ObservableObject {
         
         dispatchGroup.notify(queue: .main) {
             completion(names)
+        }
+    }
+    
+    @MainActor
+    func getUserProfilePic(email: String) async -> String? {
+        do {
+            let document = try await db.collection("users").document(email).getDocument()
+            if let data = document.data(),
+               let profilePictureUrl = data["profilePictureUrl"] as? String {
+                return profilePictureUrl
+            }
+            return nil
+        } catch {
+            print("Error fetching profile picture: \(error.localizedDescription)")
+            return nil
         }
     }
     

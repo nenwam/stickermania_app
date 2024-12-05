@@ -3,9 +3,11 @@ class PermissionManager {
     static func canMessage(user: User, targetRole: UserRole) -> Bool {
         switch user.role {
         case .customer:
-            return targetRole == .accountManager
+            return targetRole == .customer
         case .accountManager, .employee:
             return targetRole == .employee || targetRole == .accountManager
+        case .suspended:
+            return false
         case .admin:
             return true
         }

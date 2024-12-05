@@ -18,9 +18,10 @@ struct LoginView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                Text("Sticker Mania")
-                    .font(.largeTitle)
-                    .bold()
+                Image("sm_text_logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 120)
                     .padding(.bottom, 30)
 
                 // Image("sm_logo_nobg")
@@ -57,10 +58,10 @@ struct LoginView: View {
                         .cornerRadius(10)
                 }
                 
-                Button(action: { isSigningUp.toggle() }) {
-                    Text(isSigningUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
-                        .foregroundColor(.blue)
-                }
+                // Button(action: { isSigningUp.toggle() }) {
+                //     Text(isSigningUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
+                //         .foregroundColor(.blue)
+                // }
             }
             .padding()
             .alert("Error", isPresented: $showError) {

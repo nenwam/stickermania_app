@@ -4,6 +4,7 @@ struct OrderListView: View {
     @StateObject private var viewModel = OrderListViewModel()
     @State private var selectedStatus: OrderStatus?
     @State private var selectedDateFilter: DateFilter = .all
+    @State private var selectedBrand: Brand?
     let customerId: String
     
     enum DateFilter {
@@ -41,7 +42,8 @@ struct OrderListView: View {
         viewModel.orders.filter { order in
             let statusMatch = selectedStatus == nil || order.status == selectedStatus
             let dateMatch = selectedDateFilter.filterDate(order.createdAt)
-            return statusMatch && dateMatch
+            let brandMatch = selectedBrand == nil || order.brandId == selectedBrand?.id
+            return statusMatch && dateMatch && brandMatch
         }
     }
 
@@ -60,13 +62,23 @@ struct OrderListView: View {
                 }
                 .pickerStyle(.segmented)
                 
-                Picker("Status Filter", selection: $selectedStatus) {
-                    Text("All Status").tag(Optional<OrderStatus>.none)
-                    ForEach(OrderStatus.allCases, id: \.self) { status in
-                        Text(status.rawValue).tag(Optional(status))
+                HStack {
+                    Picker("Status Filter", selection: $selectedStatus) {
+                        Text("All Status").tag(Optional<OrderStatus>.none)
+                        ForEach(OrderStatus.allCases, id: \.self) { status in
+                            Text(status.rawValue).tag(Optional(status))
+                        }
                     }
+                    .pickerStyle(.menu)
+                    
+                    Picker("Brand Filter", selection: $selectedBrand) {
+                        Text("All Brands").tag(Optional<Brand>.none)
+                        ForEach(viewModel.brands, id: \.id) { brand in
+                            Text(brand.name).tag(Optional(brand))
+                        }
+                    }
+                    .pickerStyle(.menu)
                 }
-                .pickerStyle(.menu)
             }
             .padding()
             
@@ -85,6 +97,7 @@ struct OrderListView: View {
         .navigationTitle("Orders")
         .onAppear {
             viewModel.fetchOrders(forCustomerId: customerId)
+            viewModel.fetchBrands(forCustomerId: customerId)
         }
         .alert(item: $viewModel.errorMessage) { error in
             Alert(title: Text("Error"), message: Text(error.message), dismissButton: .default(Text("OK")))
@@ -97,8 +110,8 @@ struct OrderListView_Previews: PreviewProvider {
         let sampleOrders = [
             Order(
                 id: "123",
-                customerId: "customer1", 
-                accountManagerId: "manager1",
+                customerEmail: "customer1@email.com",
+                accountManagerEmail: "manager1@email.com", 
                 brandId: "brand1",
                 brandName: "Brand 1",
                 items: [
@@ -107,12 +120,13 @@ struct OrderListView_Previews: PreviewProvider {
                 ],
                 status: .pending,
                 createdAt: Date(),
-                totalAmount: 24.97
+                totalAmount: 24.97,
+                attachments: []
             ),
             Order(
-                id: "456", 
-                customerId: "customer2",
-                accountManagerId: "manager2",
+                id: "456",
+                customerEmail: "customer2@email.com",
+                accountManagerEmail: "manager2@email.com",
                 brandId: "brand2",
                 brandName: "Brand 2",
                 items: [
@@ -120,12 +134,13 @@ struct OrderListView_Previews: PreviewProvider {
                 ],
                 status: .inProgress,
                 createdAt: Date().addingTimeInterval(-86400), // Yesterday
-                totalAmount: 19.95
+                totalAmount: 19.95,
+                attachments: []
             ),
             Order(
                 id: "789",
-                customerId: "customer3",
-                accountManagerId: "manager1", 
+                customerEmail: "customer3@email.com",
+                accountManagerEmail: "manager1@email.com",
                 brandId: "brand3",
                 brandName: "Brand 3",
                 items: [
@@ -135,7 +150,8 @@ struct OrderListView_Previews: PreviewProvider {
                 ],
                 status: .completed,
                 createdAt: Date().addingTimeInterval(-172800), // 2 days ago
-                totalAmount: 48.94
+                totalAmount: 48.94,
+                attachments: []
             )
         ]
         

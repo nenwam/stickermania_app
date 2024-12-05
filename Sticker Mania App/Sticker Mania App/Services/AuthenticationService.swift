@@ -32,7 +32,7 @@ class AuthenticationService {
             
             // Ensure we're on the main thread when accessing Firestore
             DispatchQueue.main.async {
-                self.db.collection("users").document(userData["id"] as! String).setData(userData) { error in
+                self.db.collection("users").document(userData["email"] as! String).setData(userData) { error in
                     if let error = error {
                         completion(.failure(error))
                     } else {

@@ -13,50 +13,54 @@ struct OrderCustomerLookupView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                Text("Customer Lookup")
-                    .font(.title)
-                    .padding(.top)
-                
-                Picker("Search Type", selection: $searchType) {
-                    Text("Orders").tag(SearchType.orders)
-                    Text("Users").tag(SearchType.users)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                
-                if searchType == .orders {
-                    ChatParticipantSelectView(selectedParticipants: $selectedCustomers)
-                        .frame(height: 300)
+            ZStack {
+                VStack(spacing: 5) {
+                    Text("Customer Lookup")
+                        .font(.title)
+                        .padding(.top, 8)
                     
-                    NavigationLink(
-                        destination: OrderListView(customerId: selectedCustomers.first ?? ""),
-                        isActive: $shouldNavigate
-                    ) {
-                        EmptyView()
+                    Picker("Search Type", selection: $searchType) {
+                        Text("Orders").tag(SearchType.orders)
+                        Text("Users").tag(SearchType.users)
                     }
-                    
-                    Button(action: {
-                        if !selectedCustomers.isEmpty {
-                            shouldNavigate = true
-                        }
-                    }) {
-                        Text("Search Orders")
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .cornerRadius(10)
-                    }
-                    .disabled(selectedCustomers.isEmpty)
+                    .pickerStyle(.segmented)
                     .padding(.horizontal)
-                } else {
-                    UserSearchView()
+                    
+                    if searchType == .orders {
+                        // ChatParticipantSelectView(selectedParticipants: $selectedCustomers)
+                        //     .frame(height: 300)
+                        
+                        // NavigationLink(
+                        //     destination: OrderListView(customerId: selectedCustomers.first ?? ""),
+                        //     isActive: $shouldNavigate
+                        // ) {
+                        //     EmptyView()
+                        // }
+                        
+                        // Button(action: {
+                        //     if !selectedCustomers.isEmpty {
+                        //         shouldNavigate = true
+                        //     }
+                        // }) {
+                        //     Text("Search Orders")
+                        //         .foregroundColor(.white)
+                        //         .padding()
+                        //         .frame(maxWidth: .infinity)
+                        //         .background(Color.blue)
+                        //         .cornerRadius(10)
+                        // }
+                        // .disabled(selectedCustomers.isEmpty)
+                        // .padding(.horizontal)
+                        OrderSearchView()
+                    } else {
+                        UserSearchView()
+                    }
+                    
+                    Spacer()
                 }
                 
-                Spacer()
+                BackgroundLogo(opacity: 0.4)
             }
-            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

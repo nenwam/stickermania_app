@@ -1,7 +1,8 @@
 struct User: Decodable, Identifiable {
     let id: String
-    let email: String
-    let name: String
-    let role: UserRole
-    let brands: [Brand]?
+    var email: String
+    var name: String
+    var role: UserRole
+    var brands: [Brand]?
+    var profilePictureUrl: String?
 }
