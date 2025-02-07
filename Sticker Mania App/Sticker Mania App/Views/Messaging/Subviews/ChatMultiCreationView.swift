@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 
 struct ChatMultiCreationView: View {
     @StateObject private var viewModel = ChatMultiCreationViewModel()
@@ -11,10 +12,15 @@ struct ChatMultiCreationView: View {
     @Environment(\.dismiss) private var dismiss
     
     var filteredCustomers: [String] {
+        // Get available customers based on user role
+        let availableCustomers = viewModel.currentUserRole == .accountManager ? 
+            viewModel.customers.filter { viewModel.currentUserCustomerIds.contains($0) } :
+            viewModel.customers
+        print("Current user role: ", viewModel.currentUserRole)
         if customerSearchText.isEmpty {
             return Array(selectedCustomers).sorted()
         }
-        let filtered = viewModel.customers.filter { customer in
+        let filtered = availableCustomers.filter { customer in
             customer.localizedCaseInsensitiveContains(customerSearchText)
         }
         return Array(Set(filtered + Array(selectedCustomers))).sorted()

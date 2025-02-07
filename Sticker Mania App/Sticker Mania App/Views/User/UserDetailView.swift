@@ -61,7 +61,6 @@ struct UserDetailView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             
-                            
                                 Button(action: {
                                     showingRoleEditor = true
                                 }) {
@@ -77,6 +76,28 @@ struct UserDetailView: View {
                             
                         }
                     }
+
+                    // Create User button - only show for admin
+                    
+                    NavigationLink(destination: UserAddRelationView(userId: user.id)) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "person.badge.plus")
+                                    .font(.title2)
+                                Text((user.role == .accountManager || user.role == .admin ? "Add Customer" : "Add Account Manager"))
+                                    .font(.headline)
+                            }
+                            Text("Add a new user to the system")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(Color(.systemBackground))
+                        .cornerRadius(10)
+                        .shadow(radius: 2)
+                    }
+                    
                     
                     // Brands Section
                     if let brands = user.brands {

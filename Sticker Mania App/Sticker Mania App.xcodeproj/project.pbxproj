@@ -18,6 +18,7 @@
 		B370E0262CD558F2006D2314 /* ChatUserCreationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370E0252CD558F2006D2314 /* ChatUserCreationTest.swift */; };
 		B370E0282CD55E94006D2314 /* ChatParticipantsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370E0272CD55E94006D2314 /* ChatParticipantsView.swift */; };
 		B370E02A2CD55F1A006D2314 /* ChatType.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370E0292CD55F1A006D2314 /* ChatType.swift */; };
+		B375EBD32D569B2B00922F26 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B375EBD22D569B2B00922F26 /* SafariView.swift */; };
 		B375F78F2CEFCA2500A6D034 /* EnlargedImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B375F78E2CEFCA2500A6D034 /* EnlargedImageView.swift */; };
 		B375F7912CEFCAD200A6D034 /* IdentifiableURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = B375F7902CEFCAD200A6D034 /* IdentifiableURL.swift */; };
 		B375F7932CEFE38F00A6D034 /* VideoThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B375F7922CEFE38F00A6D034 /* VideoThumbnailView.swift */; };
@@ -93,6 +94,8 @@
 		B3B3F1D42CDD3FE4005997A0 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B3F1D32CDD3FE4005997A0 /* LoginView.swift */; };
 		B3B3F1D62CDD7562005997A0 /* UserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B3F1D52CDD7562005997A0 /* UserService.swift */; };
 		B3B3F1D82CDD7BB5005997A0 /* CustomerHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3B3F1D72CDD7BB5005997A0 /* CustomerHomeView.swift */; };
+		B3CA989B2D14E52B00A507D3 /* UserAddRelationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3CA989A2D14E52B00A507D3 /* UserAddRelationView.swift */; };
+		B3CA989D2D14E53E00A507D3 /* UserAddRelationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3CA989C2D14E53E00A507D3 /* UserAddRelationViewModel.swift */; };
 		B3F7990A2CF6DAF400B136B8 /* UserDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F799092CF6DAF400B136B8 /* UserDetailView.swift */; };
 		B3F7990C2CF6DD4F00B136B8 /* UserSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F7990B2CF6DD4F00B136B8 /* UserSearchView.swift */; };
 		B3F7990F2CF6DE1000B136B8 /* UserSearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F7990E2CF6DE1000B136B8 /* UserSearchViewModel.swift */; };
@@ -129,6 +132,7 @@
 		B370E0252CD558F2006D2314 /* ChatUserCreationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatUserCreationTest.swift; sourceTree = "<group>"; };
 		B370E0272CD55E94006D2314 /* ChatParticipantsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatParticipantsView.swift; sourceTree = "<group>"; };
 		B370E0292CD55F1A006D2314 /* ChatType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatType.swift; sourceTree = "<group>"; };
+		B375EBD22D569B2B00922F26 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		B375F78E2CEFCA2500A6D034 /* EnlargedImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnlargedImageView.swift; sourceTree = "<group>"; };
 		B375F7902CEFCAD200A6D034 /* IdentifiableURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentifiableURL.swift; sourceTree = "<group>"; };
 		B375F7922CEFE38F00A6D034 /* VideoThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoThumbnailView.swift; sourceTree = "<group>"; };
@@ -202,6 +206,8 @@
 		B3B3F1D32CDD3FE4005997A0 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		B3B3F1D52CDD7562005997A0 /* UserService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserService.swift; sourceTree = "<group>"; };
 		B3B3F1D72CDD7BB5005997A0 /* CustomerHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomerHomeView.swift; sourceTree = "<group>"; };
+		B3CA989A2D14E52B00A507D3 /* UserAddRelationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAddRelationView.swift; sourceTree = "<group>"; };
+		B3CA989C2D14E53E00A507D3 /* UserAddRelationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAddRelationViewModel.swift; sourceTree = "<group>"; };
 		B3F799092CF6DAF400B136B8 /* UserDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDetailView.swift; sourceTree = "<group>"; };
 		B3F7990B2CF6DD4F00B136B8 /* UserSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSearchView.swift; sourceTree = "<group>"; };
 		B3F7990E2CF6DE1000B136B8 /* UserSearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSearchViewModel.swift; sourceTree = "<group>"; };
@@ -257,6 +263,7 @@
 				B3B3F1D32CDD3FE4005997A0 /* LoginView.swift */,
 				B3B3F1D72CDD7BB5005997A0 /* CustomerHomeView.swift */,
 				B368A94A2CFFAA5F00543CAD /* SuspendedView.swift */,
+				B375EBD22D569B2B00922F26 /* SafariView.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -577,6 +584,7 @@
 				B37F34E42CFE7979004A84FC /* UserProfileViewModel.swift */,
 				B37F34E82CFEAAC0004A84FC /* UserStatisticsViewModel.swift */,
 				B368A9502CFFB54700543CAD /* UserCreationViewModel.swift */,
+				B3CA989C2D14E53E00A507D3 /* UserAddRelationViewModel.swift */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -587,6 +595,7 @@
 				B3F799132CF6E2F500B136B8 /* BrandSelectionView.swift */,
 				B37F34DC2CFE6BBF004A84FC /* EditBrandsButton.swift */,
 				B368A94C2CFFAC1300543CAD /* RoleSelectionView.swift */,
+				B3CA989A2D14E52B00A507D3 /* UserAddRelationView.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
@@ -738,6 +747,7 @@
 				B3B0CB642CD19E9300EF664F /* LoadingIndicator.swift in Sources */,
 				B3B0CB722CD19E9300EF664F /* UserRole.swift in Sources */,
 				B375F7952CF0105C00A6D034 /* Brand.swift in Sources */,
+				B3CA989D2D14E53E00A507D3 /* UserAddRelationViewModel.swift in Sources */,
 				B3B0CB662CD19E9300EF664F /* ChatDetailViewModel.swift in Sources */,
 				B37F34E92CFEAAC0004A84FC /* UserStatisticsViewModel.swift in Sources */,
 				B39A0FB32CD2EB0E00E45AE0 /* ChatMessage.swift in Sources */,
@@ -774,6 +784,7 @@
 				B3B3F1D62CDD7562005997A0 /* UserService.swift in Sources */,
 				B3B0CB692CD19E9300EF664F /* OrderListViewModel.swift in Sources */,
 				B370E02A2CD55F1A006D2314 /* ChatType.swift in Sources */,
+				B375EBD32D569B2B00922F26 /* SafariView.swift in Sources */,
 				B37F34E32CFE7621004A84FC /* UserProfileView.swift in Sources */,
 				B3B0CB772CD19E9300EF664F /* OrderDetailController.swift in Sources */,
 				B3B0CB702CD19E9300EF664F /* Permissions.swift in Sources */,
@@ -803,6 +814,7 @@
 				B37F34E72CFEAAAD004A84FC /* UserStatisticsView.swift in Sources */,
 				B368A94F2CFFB53700543CAD /* UserCreationView.swift in Sources */,
 				B355CC852D00D8B300A1789D /* ChatMultiCreationViewModel.swift in Sources */,
+				B3CA989B2D14E52B00A507D3 /* UserAddRelationView.swift in Sources */,
 				B3B0CB712CD19E9300EF664F /* User.swift in Sources */,
 				B37F34DD2CFE6BBF004A84FC /* EditBrandsButton.swift in Sources */,
 				B3B0CB612CD19E9300EF664F /* OrderCell.swift in Sources */,
@@ -975,11 +987,13 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_ASSET_PATHS = "\"Sticker Mania App/Preview Content\"";
-				DEVELOPMENT_TEAM = WRBU6ZW2N4;
+				DEVELOPMENT_TEAM = WVX9U237XX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/Sticker Mania App/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -990,7 +1004,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "aware.Sticker-Mania-App";
+				PRODUCT_BUNDLE_IDENTIFIER = com.rallyessentials.stickermania;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1008,10 +1022,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Sticker Mania App/Preview Content\"";
-				DEVELOPMENT_TEAM = WRBU6ZW2N4;
+				DEVELOPMENT_TEAM = WVX9U237XX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/Sticker Mania App/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1022,7 +1037,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "aware.Sticker-Mania-App";
+				PRODUCT_BUNDLE_IDENTIFIER = com.rallyessentials.stickermania;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;

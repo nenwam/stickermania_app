@@ -120,6 +120,8 @@ struct UserProfileView: View {
                                 .shadow(radius: 2)
                             }
                         }
+
+                        
                         
                         // Associated Brands section - only show for customers
                         if user.role == .customer {

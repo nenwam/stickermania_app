@@ -5,6 +5,8 @@ class ChatMultiCreationViewModel: ObservableObject {
     @Published var customers: [String] = []
     @Published var isLoading = false
     @Published var error: Error?
+    @Published var currentUserCustomerIds: [String] = []
+    @Published var currentUserRole: UserRole = .customer
     
     private let db = Firestore.firestore()
     private let chatCreationVM = ChatCreationViewModel()
@@ -13,12 +15,28 @@ class ChatMultiCreationViewModel: ObservableObject {
         isLoading = true
         
         do {
+            // Load all customers
             let snapshot = try await db.collection("users")
                 .whereField("role", isEqualTo: "customer")
                 .getDocuments()
             
             self.customers = snapshot.documents.compactMap { doc in
                 doc.data()["email"] as? String
+            }
+            
+            // Load current user's role and assigned customers if they are an account manager
+            if let currentUserEmail = Auth.auth().currentUser?.email {
+                let userDoc = try await db.collection("users").document(currentUserEmail).getDocument()
+                if let userData = userDoc.data() {
+                    if let role = userData["role"] as? String {
+                        self.currentUserRole = UserRole(rawValue: role) ?? .customer
+                    }
+                    
+                    if self.currentUserRole == .accountManager,
+                       let assignedCustomers = userData["customerIds"] as? [String] {
+                        self.currentUserCustomerIds = assignedCustomers
+                    }
+                }
             }
             
             DispatchQueue.main.async {
