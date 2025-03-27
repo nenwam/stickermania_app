@@ -13,41 +13,51 @@ import FirebaseFirestore
 @MainActor
 class UserProfileViewModel: ObservableObject {
     @Published var profileImageUrl: String?
+    private let logger = LoggingService.shared
     
     func fetchProfileData() async -> (imageUrl: String?, name: String?) {
         guard let user = Auth.auth().currentUser,
               let email = user.email else {
+            logger.log("Failed to fetch profile data: No authenticated user", level: .warning)
             return (nil, nil)
         }
         
+        logger.log("Fetching profile data for user: \(email)")
         let db = Firestore.firestore()
         do {
             let document = try await db.collection("users").document(email).getDocument()
             if let data = document.data() {
                 let url = data["profilePictureUrl"] as? String
                 let name = data["name"] as? String
+                logger.log("Successfully fetched profile data for \(email)")
                 return (url, name)
             }
+            logger.log("No profile data found for user: \(email)", level: .warning)
             return (nil, nil)
         } catch {
-            print("Error fetching profile data: \(error.localizedDescription)")
+            logger.log("Error fetching profile data: \(error.localizedDescription)", level: .error)
             return (nil, nil)
         }
     }
     
     func changeUsername(to newUsername: String, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let user = Auth.auth().currentUser else {
-            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No user logged in"])))
+            let errorMessage = "No user logged in"
+            logger.log(errorMessage, level: .error)
+            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
             return
         }
         
+        logger.log("Changing username to: \(newUsername) for user: \(user.email ?? "unknown")")
         let changeRequest = user.createProfileChangeRequest()
         changeRequest.displayName = newUsername
         
-        changeRequest.commitChanges { error in
+        changeRequest.commitChanges { [weak self] error in
             if let error = error {
+                self?.logger.log("Failed to change username: \(error.localizedDescription)", level: .error)
                 completion(.failure(error))
             } else {
+                self?.logger.log("Username changed successfully to: \(newUsername)")
                 completion(.success(()))
             }
         }
@@ -55,14 +65,19 @@ class UserProfileViewModel: ObservableObject {
     
     func changePassword(to newPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let user = Auth.auth().currentUser else {
-            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No user logged in"])))
+            let errorMessage = "No user logged in"
+            logger.log(errorMessage, level: .error)
+            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
             return
         }
         
-        user.updatePassword(to: newPassword) { error in
+        logger.log("Changing password for user: \(user.email ?? "unknown")")
+        user.updatePassword(to: newPassword) { [weak self] error in
             if let error = error {
+                self?.logger.log("Failed to change password: \(error.localizedDescription)", level: .error)
                 completion(.failure(error))
             } else {
+                self?.logger.log("Password changed successfully")
                 completion(.success(()))
             }
         }
@@ -70,10 +85,13 @@ class UserProfileViewModel: ObservableObject {
     
     func uploadProfilePicture(image: UIImage, completion: @escaping (Result<String, Error>) -> Void) {
         guard let user = Auth.auth().currentUser else {
-            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No user logged in"])))
+            let errorMessage = "No user logged in"
+            logger.log(errorMessage, level: .error)
+            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
             return
         }
         
+        logger.log("Preparing to upload profile picture for user: \(user.email ?? user.uid)")
         let storageRef = Storage.storage().reference().child("profile_pictures/\(user.uid).jpg")
         
         // Resize image to max dimension of 1024 while maintaining aspect ratio
@@ -81,6 +99,7 @@ class UserProfileViewModel: ObservableObject {
         let scale = min(maxDimension / image.size.width, maxDimension / image.size.height)
         let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
         
+        logger.log("Resizing image from \(image.size) to \(newSize)")
         UIGraphicsBeginImageContext(newSize)
         image.draw(in: CGRect(origin: .zero, size: newSize))
         let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
@@ -88,25 +107,34 @@ class UserProfileViewModel: ObservableObject {
         
         guard let compressedImage = resizedImage,
               let imageData = compressedImage.jpegData(compressionQuality: 0.6) else {
-            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Image compression failed"])))
+            let errorMessage = "Image compression failed"
+            logger.log(errorMessage, level: .error)
+            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
             return
         }
         
+        logger.log("Uploading profile picture: \(imageData.count) bytes")
         storageRef.putData(imageData, metadata: nil) { [weak self] metadata, error in
             if let error = error {
+                self?.logger.log("Failed to upload profile picture: \(error.localizedDescription)", level: .error)
                 completion(.failure(error))
                 return
             }
             
-            storageRef.downloadURL { url, error in
+            self?.logger.log("Image uploaded, retrieving download URL")
+            storageRef.downloadURL { [weak self] url, error in
                 if let error = error {
+                    self?.logger.log("Failed to get download URL: \(error.localizedDescription)", level: .error)
                     completion(.failure(error))
                 } else if let url = url {
+                    self?.logger.log("Got download URL: \(url.absoluteString)")
                     self?.updateProfilePictureUrl(url.absoluteString) { result in
                         switch result {
                         case .success:
+                            self?.logger.log("Profile picture URL updated successfully in user document")
                             completion(.success(url.absoluteString))
                         case .failure(let error):
+                            self?.logger.log("Failed to update profile picture URL: \(error.localizedDescription)", level: .error)
                             completion(.failure(error))
                         }
                     }
@@ -118,21 +146,25 @@ class UserProfileViewModel: ObservableObject {
     private func updateProfilePictureUrl(_ url: String, completion: @escaping (Result<Void, Error>) -> Void) {
         guard let user = Auth.auth().currentUser,
               let email = user.email else {
-            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No user logged in or invalid email"])))
+            let errorMessage = "No user logged in or invalid email"
+            logger.log(errorMessage, level: .error)
+            completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
             return
         }
 
-        print("User email: \(email)")
+        logger.log("Updating profile picture URL in Firestore for user: \(email)")
         
         let db = Firestore.firestore()
         db.collection("users").document(email).updateData([
             "profilePictureUrl": url
-        ]) { error in
+        ]) { [weak self] error in
             if let error = error {
+                self?.logger.log("Error updating profile picture URL in Firestore: \(error.localizedDescription)", level: .error)
                 completion(.failure(error))
             } else {
+                self?.logger.log("Profile picture URL updated successfully in Firestore")
                 DispatchQueue.main.async {
-                    self.profileImageUrl = url
+                    self?.profileImageUrl = url
                 }
                 completion(.success(()))
             }

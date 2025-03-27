@@ -14,6 +14,7 @@
 		B368A94D2CFFAC1300543CAD /* RoleSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368A94C2CFFAC1300543CAD /* RoleSelectionView.swift */; };
 		B368A94F2CFFB53700543CAD /* UserCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368A94E2CFFB53700543CAD /* UserCreationView.swift */; };
 		B368A9512CFFB54700543CAD /* UserCreationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B368A9502CFFB54700543CAD /* UserCreationViewModel.swift */; };
+		B3694F0B2D9219C00061035A /* LoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3694F0A2D9219C00061035A /* LoggingService.swift */; };
 		B370E0242CD54A45006D2314 /* ChatParticipantSelectViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370E0232CD54A45006D2314 /* ChatParticipantSelectViewModel.swift */; };
 		B370E0262CD558F2006D2314 /* ChatUserCreationTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370E0252CD558F2006D2314 /* ChatUserCreationTest.swift */; };
 		B370E0282CD55E94006D2314 /* ChatParticipantsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B370E0272CD55E94006D2314 /* ChatParticipantsView.swift */; };
@@ -101,6 +102,8 @@
 		B3F7990F2CF6DE1000B136B8 /* UserSearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F7990E2CF6DE1000B136B8 /* UserSearchViewModel.swift */; };
 		B3F799112CF6E13E00B136B8 /* UserDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F799102CF6E13E00B136B8 /* UserDetailViewModel.swift */; };
 		B3F799142CF6E2F500B136B8 /* BrandSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F799132CF6E2F500B136B8 /* BrandSelectionView.swift */; };
+		B3FC5B2C2D8C9C5A0003F401 /* ProductionReady.md in Resources */ = {isa = PBXBuildFile; fileRef = B3FC5B2B2D8C9C4C0003F401 /* ProductionReady.md */; };
+		B3FC5B2E2D8D0C3F0003F401 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = B3FC5B2D2D8D0C3F0003F401 /* FirebaseCrashlytics */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +131,7 @@
 		B368A94C2CFFAC1300543CAD /* RoleSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleSelectionView.swift; sourceTree = "<group>"; };
 		B368A94E2CFFB53700543CAD /* UserCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCreationView.swift; sourceTree = "<group>"; };
 		B368A9502CFFB54700543CAD /* UserCreationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCreationViewModel.swift; sourceTree = "<group>"; };
+		B3694F0A2D9219C00061035A /* LoggingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingService.swift; sourceTree = "<group>"; };
 		B370E0232CD54A45006D2314 /* ChatParticipantSelectViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatParticipantSelectViewModel.swift; sourceTree = "<group>"; };
 		B370E0252CD558F2006D2314 /* ChatUserCreationTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatUserCreationTest.swift; sourceTree = "<group>"; };
 		B370E0272CD55E94006D2314 /* ChatParticipantsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatParticipantsView.swift; sourceTree = "<group>"; };
@@ -158,6 +162,7 @@
 		B39A0FBB2CD2F0AA00E45AE0 /* ChatCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCreationView.swift; sourceTree = "<group>"; };
 		B39A0FBD2CD2F14000E45AE0 /* ChatCreationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCreationViewModel.swift; sourceTree = "<group>"; };
 		B39A0FBF2CD2F27B00E45AE0 /* ChatParticipantSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatParticipantSelectView.swift; sourceTree = "<group>"; };
+		B3A5B68C2D95BC3100FF83E3 /* Sticker Mania App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Sticker Mania App.entitlements"; sourceTree = "<group>"; };
 		B3B0CAEF2CD161E600EF664F /* Sticker Mania App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sticker Mania App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B3B0CAF22CD161E600EF664F /* Sticker_Mania_AppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sticker_Mania_AppApp.swift; sourceTree = "<group>"; };
 		B3B0CAF42CD161E600EF664F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -213,6 +218,7 @@
 		B3F7990E2CF6DE1000B136B8 /* UserSearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSearchViewModel.swift; sourceTree = "<group>"; };
 		B3F799102CF6E13E00B136B8 /* UserDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDetailViewModel.swift; sourceTree = "<group>"; };
 		B3F799132CF6E2F500B136B8 /* BrandSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandSelectionView.swift; sourceTree = "<group>"; };
+		B3FC5B2B2D8C9C4C0003F401 /* ProductionReady.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ProductionReady.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -223,6 +229,7 @@
 				B3B0CB242CD1782F00EF664F /* FirebaseDatabase in Frameworks */,
 				B3B0CB262CD1782F00EF664F /* FirebaseFirestore in Frameworks */,
 				B3B0CB282CD1782F00EF664F /* FirebaseMessaging in Frameworks */,
+				B3FC5B2E2D8D0C3F0003F401 /* FirebaseCrashlytics in Frameworks */,
 				B3B0CB202CD1782F00EF664F /* FirebaseAnalytics in Frameworks */,
 				B3B0CB222CD1782F00EF664F /* FirebaseAuth in Frameworks */,
 				B3B0CB2A2CD1782F00EF664F /* FirebaseStorage in Frameworks */,
@@ -322,6 +329,8 @@
 		B3B0CAF12CD161E600EF664F /* Sticker Mania App */ = {
 			isa = PBXGroup;
 			children = (
+				B3A5B68C2D95BC3100FF83E3 /* Sticker Mania App.entitlements */,
+				B3FC5B2B2D8C9C4C0003F401 /* ProductionReady.md */,
 				B3B0CB822CD1C11C00EF664F /* GoogleService-Info.plist */,
 				B3B0CB5B2CD19E9300EF664F /* Controllers */,
 				B3B0CB512CD19E9300EF664F /* Helpers */,
@@ -510,6 +519,7 @@
 		B3B0CB502CD19E9300EF664F /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				B3694F0A2D9219C00061035A /* LoggingService.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -610,6 +620,7 @@
 				B3B0CAEB2CD161E600EF664F /* Sources */,
 				B3B0CAEC2CD161E600EF664F /* Frameworks */,
 				B3B0CAED2CD161E600EF664F /* Resources */,
+				B3FC5B2F2D8D12E80003F401 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -623,6 +634,7 @@
 				B3B0CB252CD1782F00EF664F /* FirebaseFirestore */,
 				B3B0CB272CD1782F00EF664F /* FirebaseMessaging */,
 				B3B0CB292CD1782F00EF664F /* FirebaseStorage */,
+				B3FC5B2D2D8D0C3F0003F401 /* FirebaseCrashlytics */,
 			);
 			productName = "Sticker Mania App";
 			productReference = B3B0CAEF2CD161E600EF664F /* Sticker Mania App.app */;
@@ -716,6 +728,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3B0CAFA2CD161E700EF664F /* Preview Assets.xcassets in Resources */,
+				B3FC5B2C2D8C9C5A0003F401 /* ProductionReady.md in Resources */,
 				B3B0CAF72CD161E700EF664F /* Assets.xcassets in Resources */,
 				B3B0CB832CD1C11C00EF664F /* GoogleService-Info.plist in Resources */,
 			);
@@ -736,6 +749,32 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B3FC5B2F2D8D12E80003F401 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}.debug.dylib",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		B3B0CAEB2CD161E600EF664F /* Sources */ = {
@@ -782,6 +821,7 @@
 				B39A0FB62CD2EB3B00E45AE0 /* MessageBubble.swift in Sources */,
 				B37F34DF2CFE7270004A84FC /* OrderSearchView.swift in Sources */,
 				B3B3F1D62CDD7562005997A0 /* UserService.swift in Sources */,
+				B3694F0B2D9219C00061035A /* LoggingService.swift in Sources */,
 				B3B0CB692CD19E9300EF664F /* OrderListViewModel.swift in Sources */,
 				B370E02A2CD55F1A006D2314 /* ChatType.swift in Sources */,
 				B375EBD32D569B2B00922F26 /* SafariView.swift in Sources */,
@@ -984,6 +1024,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Sticker Mania App/Sticker Mania App.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1004,6 +1045,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.rallyessentials.stickermania;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1018,6 +1060,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Sticker Mania App/Sticker Mania App.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1037,6 +1080,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				"MARKETING_VERSION[sdk=iphoneos*]" = 1.2;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.rallyessentials.stickermania;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1053,6 +1098,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WVX9U237XX;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
 				MARKETING_VERSION = 1.0;
@@ -1072,6 +1118,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WVX9U237XX;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
 				MARKETING_VERSION = 1.0;
@@ -1090,6 +1137,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WVX9U237XX;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "aware.Sticker-Mania-AppUITests";
@@ -1107,6 +1155,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WVX9U237XX;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "aware.Sticker-Mania-AppUITests";
@@ -1200,6 +1249,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B3B0CB1E2CD1782F00EF664F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
+		};
+		B3FC5B2D2D8D0C3F0003F401 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B3B0CB1E2CD1782F00EF664F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

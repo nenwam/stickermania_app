@@ -8,12 +8,20 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseAuth
+import FirebaseCrashlytics
 
 class AppDelegate: NSObject, UIApplicationDelegate {
   func application(_ application: UIApplication,
                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+      
+      // Force Firebase to use IPv4 connections only
+      let firebaseSettings = UserDefaults.standard
+      firebaseSettings.set(true, forKey: "firebase:useIPv4Only")
+      firebaseSettings.synchronize()
+      
     FirebaseApp.configure()
-
+    Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
+    
     return true
   }
 }

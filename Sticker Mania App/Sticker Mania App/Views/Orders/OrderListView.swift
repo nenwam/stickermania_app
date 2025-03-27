@@ -111,6 +111,7 @@ struct OrderListView_Previews: PreviewProvider {
             Order(
                 id: "123",
                 customerEmail: "customer1@email.com",
+                customerUid: "uid1",
                 accountManagerEmail: "manager1@email.com", 
                 brandId: "brand1",
                 brandName: "Brand 1",
@@ -126,6 +127,7 @@ struct OrderListView_Previews: PreviewProvider {
             Order(
                 id: "456",
                 customerEmail: "customer2@email.com",
+                customerUid: "uid2",
                 accountManagerEmail: "manager2@email.com",
                 brandId: "brand2",
                 brandName: "Brand 2",
@@ -140,6 +142,7 @@ struct OrderListView_Previews: PreviewProvider {
             Order(
                 id: "789",
                 customerEmail: "customer3@email.com",
+                customerUid: "uid3",
                 accountManagerEmail: "manager1@email.com",
                 brandId: "brand3",
                 brandName: "Brand 3",

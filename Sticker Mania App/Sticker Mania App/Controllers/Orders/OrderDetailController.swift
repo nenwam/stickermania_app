@@ -95,6 +95,7 @@ class OrderDetailController {
                     return Order(
                         id: document.documentID,
                         customerEmail: data["customerEmail"] as? String ?? "",
+                        customerUid: data["customerUid"] as? String,
                         accountManagerEmail: data["accountManagerEmail"] as? String ?? "",
                         brandId: data["brandId"] as? String ?? "",
                         brandName: data["brandName"] as? String ?? "",

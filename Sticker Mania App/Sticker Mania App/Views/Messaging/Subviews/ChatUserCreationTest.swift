@@ -1,5 +1,6 @@
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 struct ChatUserCreationTest: View {
     @Environment(\.dismiss) private var dismiss
@@ -47,16 +48,30 @@ struct ChatUserCreationTest: View {
     
     private func createUser() {
         let db = Firestore.firestore()
-        let userData: [String: Any] = [
-            "id": userId,
-            "email": email,
-            "name": name,
-            "role": selectedRole.rawValue
-        ]
         
-        db.collection("users").document(userId).setData(userData) { error in
+        // Create Firebase Auth user first to get UID
+        Auth.auth().createUser(withEmail: email, password: "password123") { authResult, error in
             if let error = error {
-                print("Error creating user: \(error.localizedDescription)")
+                print("Error creating auth user: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let uid = authResult?.user.uid else {
+                print("Failed to get user UID")
+                return
+            }
+            
+            let userData: [String: Any] = [
+                "id": uid, // Use UID instead of userId
+                "email": self.email,
+                "name": self.name,
+                "role": self.selectedRole.rawValue
+            ]
+            
+            db.collection("users").document(self.email).setData(userData) { error in
+                if let error = error {
+                    print("Error creating user: \(error.localizedDescription)")
+                }
             }
         }
     }

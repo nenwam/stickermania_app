@@ -49,6 +49,7 @@ struct OrderCell_Previews: PreviewProvider {
         OrderCell(order: Order(
             id: "123",
             customerEmail: "customer@example.com",
+            customerUid: "uid123",
             accountManagerEmail: "manager@example.com", 
             brandId: "brand1",
             brandName: "Brand 1",

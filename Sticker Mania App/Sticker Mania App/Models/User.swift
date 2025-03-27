@@ -5,5 +5,5 @@ struct User: Decodable, Identifiable {
     var role: UserRole
     var brands: [Brand]?
     var profilePictureUrl: String?
-    var userRelations: [User]?
+    var userRelationIds: [String]?
 }

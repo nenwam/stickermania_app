@@ -9,22 +9,27 @@ class OrderDetailViewModel: ObservableObject {
     @Published var errorMessage: String?
     private let orderDetailController = OrderDetailController()
     @Published var isCustomer: Bool = false
+    private let logger = LoggingService.shared
     
     init(order: Order) {
         self.order = order
+        logger.log("Initialized OrderDetailViewModel for order: \(order.id)")
         checkIfCustomer()
     }
     
     private func checkIfCustomer() {
         guard let currentUser = Auth.auth().currentUser else {
+            logger.log("No current user found when checking customer status", level: .info)
             isCustomer = false
             return
         }
         
         isCustomer = currentUser.email == order.customerEmail
+        logger.log("Customer status check: isCustomer=\(isCustomer), user=\(currentUser.email ?? "unknown"), orderCustomer=\(order.customerEmail)")
     }
 
     func updateOrder(withStatus status: OrderStatus, items: [OrderItem]) {
+        logger.log("Updating order \(order.id) with status: \(status.rawValue) and \(items.count) items")
         order.status = status
         order.items = items
         order.totalAmount = items.reduce(0) { $0 + ($1.price * Double($1.quantity)) }
@@ -37,8 +42,9 @@ class OrderDetailViewModel: ObservableObject {
                 self?.isLoading = false
                 switch result {
                 case .success:
-                    break
+                    self?.logger.log("Successfully updated order \(self?.order.id ?? "unknown")")
                 case .failure(let error):
+                    self?.logger.log("Failed to update order: \(error.localizedDescription)", level: .error)
                     self?.errorMessage = error.localizedDescription
                 }
             }
@@ -46,6 +52,7 @@ class OrderDetailViewModel: ObservableObject {
     }
     
     func updateOrderStatus(_ newStatus: OrderStatus) {
+        logger.log("Updating order status to: \(newStatus.rawValue) for order: \(order.id)")
         isLoading = true
         errorMessage = nil
         
@@ -55,8 +62,10 @@ class OrderDetailViewModel: ObservableObject {
                 self?.isLoading = false
                 switch result {
                 case .success:
+                    self?.logger.log("Successfully updated order status to \(newStatus.rawValue)")
                     self?.order.status = newStatus
                 case .failure(let error):
+                    self?.logger.log("Failed to update order status: \(error.localizedDescription)", level: .error)
                     self?.errorMessage = error.localizedDescription
                 }
             }
@@ -64,6 +73,7 @@ class OrderDetailViewModel: ObservableObject {
     }
     
     func refreshOrderDetails() {
+        logger.log("Refreshing order details for order: \(order.id)")
         isLoading = true
         errorMessage = nil
         
@@ -72,15 +82,19 @@ class OrderDetailViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self?.isLoading = false
                 if let error = error {
+                    self?.logger.log("Error refreshing order details: \(error.localizedDescription)", level: .error)
                     self?.errorMessage = error.localizedDescription
                     return
                 }
                 
                 guard let document = document, document.exists,
                       let data = document.data() else {
+                    self?.logger.log("Order not found during refresh: \(self?.order.id ?? "unknown")", level: .error)
                     self?.errorMessage = "Order not found"
                     return
                 }
+                
+                self?.logger.log("Successfully retrieved order document, parsing data")
                 
                 let attachments = (data["attachments"] as? [[String: Any]] ?? []).compactMap { attachmentData -> OrderAttachment? in
                     guard let id = attachmentData["id"] as? String,
@@ -88,14 +102,18 @@ class OrderDetailViewModel: ObservableObject {
                           let typeString = attachmentData["type"] as? String,
                           let type = OrderAttachment.AttachmentType(rawValue: typeString),
                           let name = attachmentData["name"] as? String else {
+                        self?.logger.log("Failed to parse attachment data", level: .warning)
                         return nil
                     }
                     return OrderAttachment(id: id, url: url, type: type, name: name)
                 }
                 
+                self?.logger.log("Parsed \(attachments.count) attachments for order")
+                
                 let updatedOrder = Order(
                     id: document.documentID,
                     customerEmail: data["customerEmail"] as? String ?? "",
+                    customerUid: data["customerUid"] as? String,
                     accountManagerEmail: data["accountManagerEmail"] as? String ?? "",
                     brandId: data["brandId"] as? String ?? "",
                     brandName: data["brandName"] as? String ?? "",
@@ -114,6 +132,9 @@ class OrderDetailViewModel: ObservableObject {
                     attachments: attachments
                 )
                 
+                let itemCount = updatedOrder.items.count
+                self?.logger.log("Order refresh complete: id=\(updatedOrder.id), status=\(updatedOrder.status.rawValue), items=\(itemCount)")
+                
                 self?.order = updatedOrder
                 self?.checkIfCustomer()
             }
@@ -121,6 +142,7 @@ class OrderDetailViewModel: ObservableObject {
     }
 
     func editOrder(updates: [String: Any]) {
+        logger.log("Editing order \(order.id) with updates: \(updates.keys.joined(separator: ", "))")
         isLoading = true
         errorMessage = nil
 
@@ -129,8 +151,10 @@ class OrderDetailViewModel: ObservableObject {
                 self?.isLoading = false
                 switch result {
                 case .success:
+                    self?.logger.log("Order edit successful, refreshing details")
                     self?.refreshOrderDetails()
                 case .failure(let error):
+                    self?.logger.log("Failed to edit order: \(error.localizedDescription)", level: .error)
                     self?.errorMessage = error.localizedDescription
                 }
             }

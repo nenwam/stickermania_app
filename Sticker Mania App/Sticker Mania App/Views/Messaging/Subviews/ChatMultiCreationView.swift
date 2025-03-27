@@ -6,9 +6,11 @@ struct ChatMultiCreationView: View {
     @State private var selectedCustomers = Set<String>()
     @State private var printTeamParticipants = Set<String>()
     @State private var designTeamParticipants = Set<String>()
+    @State private var fileSetupParticipants = Set<String>()
     @State private var customerSearchText = ""
     @State private var printTeamSearchText = ""
     @State private var designTeamSearchText = ""
+    @State private var fileSetupSearchText = ""
     @Environment(\.dismiss) private var dismiss
     
     var filteredCustomers: [String] {
@@ -44,6 +46,16 @@ struct ChatMultiCreationView: View {
             member.localizedCaseInsensitiveContains(designTeamSearchText)
         }
         return Array(Set(filtered + Array(designTeamParticipants))).sorted()
+    }
+    
+    var filteredFileSetupTeam: [String] {
+        if fileSetupSearchText.isEmpty {
+            return Array(fileSetupParticipants).sorted()
+        }
+        let filtered = viewModel.customers.filter { member in
+            member.localizedCaseInsensitiveContains(fileSetupSearchText)
+        }
+        return Array(Set(filtered + Array(fileSetupParticipants))).sorted()
     }
     
     var body: some View {
@@ -92,6 +104,19 @@ struct ChatMultiCreationView: View {
                                     selectedItems: $designTeamParticipants
                                 )
                             }
+                            
+                            VStack(alignment: .leading) {
+                                Text("File Setup Team Members")
+                                    .font(.headline)
+                                TextField("Search file setup team...", text: $fileSetupSearchText)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .padding(.bottom, 8)
+                                SearchableSection(
+                                    title: "",
+                                    items: filteredFileSetupTeam,
+                                    selectedItems: $fileSetupParticipants
+                                )
+                            }
                         }
                         .padding()
                     }
@@ -118,10 +143,14 @@ struct ChatMultiCreationView: View {
                                     var designTeamWithCustomer = designTeamParticipants
                                     designTeamWithCustomer.insert(customer)
                                     
+                                    var fileSetupTeamWithCustomer = fileSetupParticipants
+                                    fileSetupTeamWithCustomer.insert(customer)
+                                    
                                     try await viewModel.createProjectChats(
                                         selectedCustomers: [customer],
                                         printTeamParticipants: printTeamWithCustomer,
-                                        designTeamParticipants: designTeamWithCustomer
+                                        designTeamParticipants: designTeamWithCustomer,
+                                        fileSetupParticipants: fileSetupTeamWithCustomer
                                     )
                                 }
                                 dismiss()

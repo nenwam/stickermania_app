@@ -10,8 +10,10 @@ class OrderListViewModel: ObservableObject {
     
     private let orderController = OrderListController()
     private let db = Firestore.firestore()
+    private let logger = LoggingService.shared
     
     func fetchOrders() {
+        logger.log("Fetching all orders")
         isLoading = true
         errorMessage = nil
         
@@ -21,8 +23,10 @@ class OrderListViewModel: ObservableObject {
                 
                 switch result {
                 case .success(let orders):
+                    self?.logger.log("Successfully fetched \(orders.count) orders")
                     self?.orders = orders
                 case .failure(let error):
+                    self?.logger.log("Failed to fetch orders: \(error.localizedDescription)", level: .error)
                     self?.errorMessage = IdentifiableError(message: error.localizedDescription)
                 }
             }
@@ -30,6 +34,7 @@ class OrderListViewModel: ObservableObject {
     }
     
     func fetchOrders(forCustomerId customerId: String) {
+        logger.log("Fetching orders for customer: \(customerId)")
         isLoading = true
         errorMessage = nil
         
@@ -39,12 +44,17 @@ class OrderListViewModel: ObservableObject {
                 
                 switch result {
                 case .success(let orders):
+                    self?.logger.log("Successfully fetched \(orders.count) orders for customer: \(customerId)")
                     self?.orders = orders
                     // Fetch customer name from first order if available
                     if let firstOrder = orders.first {
                         self?.customerName = firstOrder.customerEmail
+                        self?.logger.log("Set customer name to: \(firstOrder.customerEmail)")
+                    } else {
+                        self?.logger.log("No orders found for customer: \(customerId)", level: .info)
                     }
                 case .failure(let error):
+                    self?.logger.log("Failed to fetch orders for customer: \(error.localizedDescription)", level: .error)
                     self?.errorMessage = IdentifiableError(message: error.localizedDescription)
                 }
             }
@@ -52,6 +62,7 @@ class OrderListViewModel: ObservableObject {
     }
     
     func fetchBrands(forCustomerId customerId: String) {
+        logger.log("Fetching brands for customer: \(customerId)")
         isLoading = true
         errorMessage = nil
         
@@ -60,12 +71,14 @@ class OrderListViewModel: ObservableObject {
                 self?.isLoading = false
                 
                 if let error = error {
+                    self?.logger.log("Error fetching brands: \(error.localizedDescription)", level: .error)
                     self?.errorMessage = IdentifiableError(message: error.localizedDescription)
                     return
                 }
                 
                 guard let data = snapshot?.data(),
                       let brandsList = data["brands"] as? [[String: Any]] else {
+                    self?.logger.log("No brands found for customer: \(customerId)", level: .info)
                     self?.brands = []
                     return
                 }
@@ -73,11 +86,13 @@ class OrderListViewModel: ObservableObject {
                 let extractedBrands = brandsList.compactMap { brandDict -> Brand? in
                     guard let id = brandDict["id"] as? String,
                           let name = brandDict["name"] as? String else {
+                        self?.logger.log("Invalid brand data found", level: .warning)
                         return nil
                     }
                     return Brand(id: id, name: name)
                 }
                 
+                self?.logger.log("Successfully fetched \(extractedBrands.count) brands for customer: \(customerId)")
                 self?.brands = extractedBrands
             }
         }

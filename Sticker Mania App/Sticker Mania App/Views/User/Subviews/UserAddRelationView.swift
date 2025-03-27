@@ -12,6 +12,7 @@ struct UserAddRelationView: View {
     @StateObject private var viewModel = UserAddRelationViewModel()
     @State private var searchText = ""
     @State private var selectedUsers: [User] = []
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         VStack {
@@ -104,13 +105,25 @@ struct UserAddRelationView: View {
                         // Pass customer and selected account manager
                         if let accountManager = selectedUsers.first {
                             Task {
-                                await viewModel.updateRelation(customers: [user], accountManager: accountManager)
+                                let success = await viewModel.addCustomersToAccountManager(
+                                    customers: [user], 
+                                    accountManagerId: accountManager.id
+                                )
+                                if success {
+                                    dismiss()
+                                }
                             }
                         }
                     } else {
                         // Pass selected customers and account manager
                         Task {
-                            await viewModel.updateRelation(customers: selectedUsers, accountManager: user)
+                            let success = await viewModel.addCustomersToAccountManager(
+                                customers: selectedUsers, 
+                                accountManagerId: user.id
+                            )
+                            if success {
+                                dismiss()
+                            }
                         }
                     }
                 }

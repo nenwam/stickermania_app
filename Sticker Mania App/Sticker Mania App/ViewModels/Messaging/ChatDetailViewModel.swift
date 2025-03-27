@@ -2,6 +2,7 @@ import SwiftUI
 import FirebaseFirestore
 import FirebaseAuth
 import FirebaseStorage
+
 class ChatDetailViewModel: ObservableObject {
     @Published var messages: [ChatMessage] = []
     @Published var isLoadingMore = false
@@ -9,30 +10,35 @@ class ChatDetailViewModel: ObservableObject {
     @Published var participants: [User] = []
     @Published var chatType: ChatType = .team
     @Published var participantNames: [String: String] = [:] // Cache for participant names
+    @Published var loadedOlderMessages = false // Track if older messages were loaded
     
     private var lastDocument: DocumentSnapshot?
     private var listener: ListenerRegistration?
     private let db = Firestore.firestore()
+    private let logger = LoggingService.shared
     
     func startListening(chatId: String) {
+        logger.log("Starting to listen for messages in chat: \(chatId)")
         let query = db.collection("chats")
             .document(chatId)
             .collection("messages")
             .order(by: "timestamp", descending: true)
-            .limit(to: 20)
+            .limit(to: 10)
         
         listener = query.addSnapshotListener { [weak self] snapshot, error in
             guard let self = self, let documents = snapshot?.documents else {
-                print("Error fetching messages: \(error?.localizedDescription ?? "Unknown error")")
+                self?.logger.log("Error fetching messages: \(error?.localizedDescription ?? "Unknown error")", level: .error)
                 return
             }
             
+            self.loadedOlderMessages = false // Reset this flag when receiving new messages
             self.messages = documents.compactMap { document in
                 try? document.data(as: ChatMessage.self)
             }.reversed()
             
             self.lastDocument = documents.last
             self.hasMoreMessages = !documents.isEmpty
+            self.logger.log("Received \(documents.count) messages for chat: \(chatId)")
 
             // Check if the current user is not the sender of the last message
             if let lastMessage = self.messages.last, lastMessage.senderId != Auth.auth().currentUser?.email {
@@ -44,33 +50,34 @@ class ChatDetailViewModel: ObservableObject {
         }
         
         // Fetch participants and chat type
+        logger.log("Fetching chat data for: \(chatId)")
         db.collection("chats").document(chatId).getDocument { [weak self] snapshot, error in
             guard let self = self,
                   let data = snapshot?.data(),
                   let participantEmails = data["participants"] as? [String],
                   let chatTypeString = data["type"] as? String else {
-                print("Error fetching chat data: \(error?.localizedDescription ?? "Unknown error")")
+                self?.logger.log("Error fetching chat data: \(error?.localizedDescription ?? "Unknown error")", level: .error)
                 return
             }
 
-            print("Participant emails: \(participantEmails)")
+            self.logger.log("Found \(participantEmails.count) participants in chat")
             
             // Set chat type
             DispatchQueue.main.async {
                 self.chatType = chatTypeString == "team" ? .team : .customer
+                self.logger.log("Set chat type to: \(self.chatType.rawValue)")
             }
             
             // Fetch each participant's user data
             for participantEmail in participantEmails {
+                self.logger.log("Fetching participant data for: \(participantEmail)")
                 db.collection("users").document(participantEmail).getDocument { [weak self] snapshot, error in
                     guard let self = self else { return }
                     
                     if let error = error {
-                        print("Error fetching participant data: \(error.localizedDescription)")
+                        self.logger.log("Error fetching participant data: \(error.localizedDescription)", level: .error)
                         return
                     }
-                    
-                    print("Fetching participant data for email: \(participantEmail)")
                     
                     if let userData = try? snapshot?.data(as: User.self) {
                         DispatchQueue.main.async {
@@ -79,53 +86,57 @@ class ChatDetailViewModel: ObservableObject {
                             
                             if !participantExists {
                                 self.participants.append(userData)
-                                print("Successfully added participant: \(userData.email)")
+                                self.logger.log("Added participant: \(userData.email)")
                             } else {
-                                print("Participant already exists: \(userData.email)")
+                                self.logger.log("Participant already exists: \(userData.email)")
                             }
                         }
                     } else {
-                        print("Failed to decode user data for: \(participantEmail)")
+                        self.logger.log("Failed to decode user data for: \(participantEmail)", level: .error)
                     }
                 }
             }
-
-            
         }
     }
 
     func getParticipants(for participantIds: [String], completion: @escaping ([User]) -> Void) {
+        logger.log("Getting participant details for \(participantIds.count) users")
         var participants: [User] = []
         let dispatchGroup = DispatchGroup()
         
         for email in participantIds {
             dispatchGroup.enter()
-            db.collection("users").document(email).getDocument { snapshot, error in
+            db.collection("users").document(email).getDocument { [weak self] snapshot, error in
                 defer { dispatchGroup.leave() }
                 
                 if let error = error {
-                    print("Error fetching participant data: \(error.localizedDescription)")
+                    self?.logger.log("Error fetching participant data: \(error.localizedDescription)", level: .error)
                     return
                 }
                 
                 if let userData = try? snapshot?.data(as: User.self) {
                     participants.append(userData)
+                    self?.logger.log("Successfully retrieved participant: \(userData.email)")
+                } else {
+                    self?.logger.log("Failed to decode user data for: \(email)", level: .error)
                 }
             }
         }
         
         dispatchGroup.notify(queue: .main) {
+            self.logger.log("Retrieved \(participants.count) participants")
             completion(participants)
         }
     }
 
     func updateUnreadStatus(chatId: String) async {
         guard let currentUserEmail = Auth.auth().currentUser?.email else {
-            print("Error: No user is signed in.")
+            logger.log("Error: No user is signed in.", level: .error)
             return
         }
         
         do {
+            logger.log("Updating unread status for user: \(currentUserEmail) in chat: \(chatId)")
             // Fetch the current chat document
             let chatDocument = try await db.collection("chats").document(chatId).getDocument()
             
@@ -139,23 +150,27 @@ class ChatDetailViewModel: ObservableObject {
                 try await db.collection("chats")
                     .document(chatId)
                     .updateData(["unreadStatus": unreadStatus])
+                
+                logger.log("Successfully updated unread status")
             }
         } catch {
-            print("Error updating unread status: \(error.localizedDescription)")
+            logger.log("Error updating unread status: \(error.localizedDescription)", level: .error)
         }
     }
     
     func loadMoreMessages(chatId: String) async {
         guard let lastDocument = lastDocument, !isLoadingMore else { return }
         
+        logger.log("Loading more messages for chat: \(chatId)")
         isLoadingMore = true
+        loadedOlderMessages = true
         
         do {
             let snapshot = try await db.collection("chats")
                 .document(chatId)
                 .collection("messages")
                 .order(by: "timestamp", descending: true)
-                .limit(to: 20)
+                .limit(to: 10)
                 .start(afterDocument: lastDocument)
                 .getDocuments()
             
@@ -163,16 +178,20 @@ class ChatDetailViewModel: ObservableObject {
                 try? document.data(as: ChatMessage.self)
             }
             
+            logger.log("Loaded \(newMessages.count) additional messages")
+            
             DispatchQueue.main.async {
                 self.messages.insert(contentsOf: newMessages.reversed(), at: 0)
                 self.lastDocument = snapshot.documents.last
                 self.hasMoreMessages = !snapshot.documents.isEmpty
                 self.isLoadingMore = false
+                // Don't reset loadedOlderMessages here, it will be used in the view
             }
         } catch {
-            print("Error loading more messages: \(error.localizedDescription)")
+            logger.log("Error loading more messages: \(error.localizedDescription)", level: .error)
             DispatchQueue.main.async {
                 self.isLoadingMore = false
+                self.loadedOlderMessages = false
             }
         }
     }
@@ -182,9 +201,11 @@ class ChatDetailViewModel: ObservableObject {
 
         // Safely unwrap the email
         guard let email = Auth.auth().currentUser?.email else {
-            print("Error: No user is signed in.")
+            logger.log("Error: No user is signed in.", level: .error)
             return
         }
+        
+        logger.log("Sending text message to chat: \(chatId)")
         
         let message = ChatMessage(
             id: UUID().uuidString,
@@ -227,40 +248,45 @@ class ChatDetailViewModel: ObservableObject {
                         "lastMessageTimestamp": Timestamp(date: message.timestamp),
                         "unreadStatus": unreadStatus
                     ])
+                
+                logger.log("Successfully sent text message")
             }
         } catch {
-            print("Error sending message: \(error.localizedDescription)")
+            logger.log("Error sending message: \(error.localizedDescription)", level: .error)
         }
     }
 
     func sendImage(_ imageData: Data, chatId: String) async {
         guard !imageData.isEmpty else {
-            print("Error: Image data is empty.")
+            logger.log("Error: Image data is empty.", level: .error)
             return
         }
         
         guard let email = Auth.auth().currentUser?.email else {
-            print("Error: No user is signed in.")
+            logger.log("Error: No user is signed in.", level: .error)
             return
         }
         
+        logger.log("Sending image to chat: \(chatId), data size: \(imageData.count) bytes")
+        
         let storageRef = Storage.storage().reference()
-        print("Storage reference", storageRef)
-        let imageRef = storageRef.child("chatImages/\(UUID().uuidString).jpg")
+        let imageId = UUID().uuidString
+        let imageRef = storageRef.child("chatImages/\(imageId).jpg")
         
         do {
             // Upload image data to Firebase Storage
-            print("Uploading metadata")
+            logger.log("Uploading image to storage: \(imageId)")
             let metadata = try await imageRef.putDataAsync(imageData, metadata: nil)
             
             // Ensure the upload was successful
             guard metadata != nil else {
-                print("Error: Upload metadata is nil.")
+                logger.log("Error: Upload metadata is nil.", level: .error)
                 return
             }
             
             // Get the download URL
             let downloadURL = try await imageRef.downloadURL()
+            logger.log("Image upload successful, URL: \(downloadURL.absoluteString)")
             
             // Create a ChatMessage with the image URL
             let message = ChatMessage(
@@ -304,40 +330,45 @@ class ChatDetailViewModel: ObservableObject {
                         "lastMessageTimestamp": Timestamp(date: message.timestamp),
                         "unreadStatus": unreadStatus
                     ])
+                
+                logger.log("Successfully sent image message")
             }
         } catch {
-            print("Error sending image: \(error.localizedDescription)")
+            logger.log("Error sending image: \(error.localizedDescription)", level: .error)
         }
     }
 
     func sendVideo(_ videoData: Data, chatId: String) async {
         guard !videoData.isEmpty else {
-            print("Error: Video data is empty.")
+            logger.log("Error: Video data is empty.", level: .error)
             return
         }
         
         guard let email = Auth.auth().currentUser?.email else {
-            print("Error: No user is signed in.")
+            logger.log("Error: No user is signed in.", level: .error)
             return
         }
         
+        logger.log("Sending video to chat: \(chatId), data size: \(videoData.count) bytes")
+        
         let storageRef = Storage.storage().reference()
-        let videoRef = storageRef.child("chatVideos/\(UUID().uuidString).mp4")
+        let videoId = UUID().uuidString
+        let videoRef = storageRef.child("chatVideos/\(videoId).mp4")
         
         do {
             // Upload video data to Firebase Storage
-            print("Uploading video data...")
+            logger.log("Uploading video to storage: \(videoId)")
             let metadata = try await videoRef.putDataAsync(videoData, metadata: nil)
             
             // Ensure the upload was successful
             guard metadata != nil else {
-                print("Error: Upload metadata is nil.")
+                logger.log("Error: Upload metadata is nil.", level: .error)
                 return
             }
             
             // Get the download URL
             let downloadURL = try await videoRef.downloadURL()
-            print("Video uploaded successfully: \(downloadURL)")
+            logger.log("Video upload successful, URL: \(downloadURL.absoluteString)")
             
             // Create a ChatMessage with the video URL
             let message = ChatMessage(
@@ -381,40 +412,45 @@ class ChatDetailViewModel: ObservableObject {
                         "lastMessageTimestamp": Timestamp(date: message.timestamp),
                         "unreadStatus": unreadStatus
                     ])
+                
+                logger.log("Successfully sent video message")
             }
         } catch {
-            print("Error sending video: \(error.localizedDescription)")
+            logger.log("Error sending video: \(error.localizedDescription)", level: .error)
         }
     }
     
     func sendPDF(_ pdfData: Data, chatId: String) async {
         guard !pdfData.isEmpty else {
-            print("Error: PDF data is empty.")
+            logger.log("Error: PDF data is empty.", level: .error)
             return
         }
         
         guard let email = Auth.auth().currentUser?.email else {
-            print("Error: No user is signed in.")
+            logger.log("Error: No user is signed in.", level: .error)
             return
         }
         
+        logger.log("Sending PDF to chat: \(chatId), data size: \(pdfData.count) bytes")
+        
         let storageRef = Storage.storage().reference()
-        let pdfRef = storageRef.child("chatPDFs/\(UUID().uuidString).pdf")
+        let pdfId = UUID().uuidString
+        let pdfRef = storageRef.child("chatPDFs/\(pdfId).pdf")
         
         do {
             // Upload PDF data to Firebase Storage
-            print("Uploading PDF data...")
+            logger.log("Uploading PDF to storage: \(pdfId)")
             let metadata = try await pdfRef.putDataAsync(pdfData, metadata: nil)
             
             // Ensure the upload was successful
             guard metadata != nil else {
-                print("Error: Upload metadata is nil.")
+                logger.log("Error: Upload metadata is nil.", level: .error)
                 return
             }
             
             // Get the download URL
             let downloadURL = try await pdfRef.downloadURL()
-            print("PDF uploaded successfully: \(downloadURL)")
+            logger.log("PDF upload successful, URL: \(downloadURL.absoluteString)")
             
             // Create a ChatMessage with the PDF URL
             let message = ChatMessage(
@@ -458,13 +494,16 @@ class ChatDetailViewModel: ObservableObject {
                         "lastMessageTimestamp": Timestamp(date: message.timestamp),
                         "unreadStatus": unreadStatus
                     ])
+                
+                logger.log("Successfully sent PDF message")
             }
         } catch {
-            print("Error sending PDF: \(error.localizedDescription)")
+            logger.log("Error sending PDF: \(error.localizedDescription)", level: .error)
         }
     }
     
     func stopListening() {
+        logger.log("Stopping message listener")
         listener?.remove()
     }
 }

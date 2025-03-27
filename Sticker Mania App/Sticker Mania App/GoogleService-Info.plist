@@ -1,4 +1,4 @@
- <?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.rallyessentials.smfirestore</string>
+	<string>com.rallyessentials.stickermania</string>
 	<key>PROJECT_ID</key>
 	<string>stickermaniafirestore</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1056784785281:ios:66a3eaae3a80ffb827d280</string>
+	<string>1:1056784785281:ios:745ee1c306d7a17d27d280</string>
 </dict>
 </plist>

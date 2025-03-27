@@ -4,6 +4,7 @@ import FirebaseFirestore
 struct Order {
     let id: String
     let customerEmail: String
+    let customerUid: String?
     let accountManagerEmail: String
     var brandId: String
     var brandName: String
@@ -40,7 +41,7 @@ func saveOrder(order: Order) {
         ])
     }
     
-    orderRef.setData([
+    var orderData: [String: Any] = [
         "customerEmail": order.customerEmail,
         "accountManagerEmail": order.accountManagerEmail,
         "brandId": order.brandId,
@@ -49,7 +50,13 @@ func saveOrder(order: Order) {
         "totalAmount": order.totalAmount,
         "createdDate": order.createdAt,
         "attachments": attachmentsData
-    ]) { error in
+    ]
+    
+    if let customerUid = order.customerUid {
+        orderData["customerUid"] = customerUid
+    }
+    
+    orderRef.setData(orderData) { error in
         if let error = error {
             print("Error saving order: \(error)")
         } else {

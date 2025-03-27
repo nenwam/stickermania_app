@@ -21,11 +21,11 @@ class AuthenticationService {
             }
             
             let userId = authResult.user.uid
-            let user = User(id: userId, email: authResult.user.email ?? "", name: name, role: .customer, brands: [])
+            let user = User(id: userId, email: authResult.user.email ?? "", name: name, role: .customer, brands: [], userRelationIds: nil)
             
             let userData: [String: Any] = [
                 "email": email,
-                "id": email.components(separatedBy: "@").first ?? "",
+                "id": userId,
                 "name": name,
                 "role": "customer" // Use string literal instead of enum raw value
             ]
@@ -48,7 +48,7 @@ class AuthenticationService {
             if let error = error {
                 completion(.failure(error))
             } else if let authResult = authResult {
-                let user = User(id: authResult.user.uid, email: authResult.user.email ?? "", name: "", role: .customer, brands: []) // Fetch role from database
+                let user = User(id: authResult.user.uid, email: authResult.user.email ?? "", name: "", role: .customer, brands: [], userRelationIds: nil) // Fetch role from database
                 completion(.success(user))
             }
         }

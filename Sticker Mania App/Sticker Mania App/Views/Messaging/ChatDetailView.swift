@@ -14,7 +14,7 @@ struct ChatDetailView: View {
     @State private var showingPhotoPicker = false // New state variable
     @State private var messageParticipants: [User] = []
 
-    private let messagesPerPage = 20
+    private let messagesPerPage = 10
     
 
     var body: some View {
@@ -106,9 +106,16 @@ struct ChatDetailView: View {
                     .padding()
                 }
                 .onChange(of: viewModel.messages) { _ in
-                    if !viewModel.isLoadingMore {
+                    if !viewModel.isLoadingMore && !viewModel.loadedOlderMessages {
                         withAnimation {
                             proxy.scrollTo(viewModel.messages.last?.id, anchor: .bottom)
+                        }
+                    }
+                    
+                    // Reset the loadedOlderMessages flag after the view has been updated
+                    if viewModel.loadedOlderMessages && !viewModel.isLoadingMore {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            viewModel.loadedOlderMessages = false
                         }
                     }
                 }
