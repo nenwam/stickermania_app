@@ -32,7 +32,7 @@ struct ChatMultiCreationView: View {
         if printTeamSearchText.isEmpty {
             return Array(printTeamParticipants).sorted()
         }
-        let filtered = viewModel.customers.filter { member in
+        let filtered = viewModel.nonCustomerUsers.filter { member in
             member.localizedCaseInsensitiveContains(printTeamSearchText)
         }
         return Array(Set(filtered + Array(printTeamParticipants))).sorted()
@@ -42,7 +42,7 @@ struct ChatMultiCreationView: View {
         if designTeamSearchText.isEmpty {
             return Array(designTeamParticipants).sorted()
         }
-        let filtered = viewModel.customers.filter { member in
+        let filtered = viewModel.nonCustomerUsers.filter { member in
             member.localizedCaseInsensitiveContains(designTeamSearchText)
         }
         return Array(Set(filtered + Array(designTeamParticipants))).sorted()
@@ -52,7 +52,7 @@ struct ChatMultiCreationView: View {
         if fileSetupSearchText.isEmpty {
             return Array(fileSetupParticipants).sorted()
         }
-        let filtered = viewModel.customers.filter { member in
+        let filtered = viewModel.nonCustomerUsers.filter { member in
             member.localizedCaseInsensitiveContains(fileSetupSearchText)
         }
         return Array(Set(filtered + Array(fileSetupParticipants))).sorted()

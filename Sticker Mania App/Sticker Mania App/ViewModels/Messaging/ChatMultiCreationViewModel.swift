@@ -3,6 +3,7 @@ import FirebaseAuth
 
 class ChatMultiCreationViewModel: ObservableObject {
     @Published var customers: [String] = []
+    @Published var nonCustomerUsers: [String] = []
     @Published var isLoading = false
     @Published var error: Error?
     @Published var currentUserCustomerIds: [String] = []
@@ -19,14 +20,25 @@ class ChatMultiCreationViewModel: ObservableObject {
         do {
             // Load all customers
             logger.log("Querying all users with customer role")
-            let snapshot = try await db.collection("users")
+            let customerSnapshot = try await db.collection("users")
                 .whereField("role", isEqualTo: "customer")
                 .getDocuments()
             
-            self.customers = snapshot.documents.compactMap { doc in
+            self.customers = customerSnapshot.documents.compactMap { doc in
                 doc.data()["email"] as? String
             }
             logger.log("Found \(self.customers.count) customers")
+            
+            // Load all non-customer users
+            logger.log("Querying all non-customer users")
+            let nonCustomerSnapshot = try await db.collection("users")
+                .whereField("role", isNotEqualTo: "customer")
+                .getDocuments()
+            
+            self.nonCustomerUsers = nonCustomerSnapshot.documents.compactMap { doc in
+                doc.data()["email"] as? String
+            }
+            logger.log("Found \(self.nonCustomerUsers.count) non-customer users")
             
             // Load current user's role and assigned customers if they are an account manager
             if let currentUserEmail = Auth.auth().currentUser?.email {
@@ -52,7 +64,7 @@ class ChatMultiCreationViewModel: ObservableObject {
                 self.isLoading = false
             }
         } catch {
-            logger.log("Error loading customers: \(error.localizedDescription)", level: .error)
+            logger.log("Error loading users: \(error.localizedDescription)", level: .error)
             DispatchQueue.main.async {
                 self.error = error
                 self.isLoading = false

@@ -121,7 +121,46 @@ struct UserProfileView: View {
                             }
                         }
 
-                        
+                        // Associated Customers Section - only show for account managers
+                        if user.role == .accountManager {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Your Customers")
+                                    .font(.headline)
+                                    .padding(.horizontal)
+                                
+                                if viewModel.associatedCustomers.isEmpty {
+                                    Text("No customers assigned")
+                                        .foregroundColor(.secondary)
+                                        .padding()
+                                } else {
+                                    ForEach(viewModel.associatedCustomers, id: \.id) { customer in
+                                        HStack {
+                                            VStack(alignment: .leading) {
+                                                Text(customer.name)
+                                                    .font(.body)
+                                                Text(customer.email)
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                            Spacer()
+                                            
+                                            NavigationLink(destination: UserDetailView(userId: customer.id)) {
+                                                Image(systemName: "chevron.right")
+                                                    .foregroundColor(.gray)
+                                            }
+                                        }
+                                        .padding()
+                                        .background(Color.gray.opacity(0.1))
+                                        .cornerRadius(8)
+                                        .padding(.horizontal)
+                                    }
+                                }
+                            }
+                            .padding(.vertical)
+                            .background(Color(.systemBackground))
+                            .cornerRadius(10)
+                            .shadow(radius: 2)
+                        }
                         
                         // Associated Brands section - only show for customers
                         if user.role == .customer {
@@ -325,17 +364,27 @@ struct UserProfileView: View {
                     }
                 }
                 
+                // Get customer IDs for account managers
+                let customerIds = userData["customerIds"] as? [String] ?? []
+                
                 self.user = User(
                     id: userData["id"] as? String ?? "",
                     email: email,
                     name: userData["name"] as? String ?? "Unknown",
                     role: userRole,
-                    brands: brands
+                    brands: brands,
+                    profilePictureUrl: userData["profilePictureUrl"] as? String,
+                    userRelationIds: customerIds
                 )
                 
                 // Set profile image URL if it exists
                 if let profilePictureUrl = userData["profilePictureUrl"] as? String {
                     viewModel.profileImageUrl = profilePictureUrl
+                }
+                
+                // Fetch associated customers if user is an account manager
+                if userRole == .accountManager && !customerIds.isEmpty {
+                    await viewModel.fetchAssociatedCustomers(customerIds: customerIds)
                 }
             } else {
                 error = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "User data not found"])

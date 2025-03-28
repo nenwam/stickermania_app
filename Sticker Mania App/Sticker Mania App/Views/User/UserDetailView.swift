@@ -76,6 +76,43 @@ struct UserDetailView: View {
                             
                         }
                     }
+                    
+                    // Associated Customers Section (only for account managers)
+                    if user.role == .accountManager {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Associated Customers")
+                                .font(.headline)
+                                .padding(.horizontal)
+                            
+                            if viewModel.associatedCustomers.isEmpty {
+                                Text("No customers assigned")
+                                    .foregroundColor(.secondary)
+                                    .padding()
+                            } else {
+                                ForEach(viewModel.associatedCustomers, id: \.id) { customer in
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            Text(customer.name)
+                                                .font(.body)
+                                            Text(customer.email)
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
+                                        
+                                        NavigationLink(destination: UserDetailView(userId: customer.id)) {
+                                            Image(systemName: "chevron.right")
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
+                                    .padding()
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(8)
+                                    .padding(.horizontal)
+                                }
+                            }
+                        }
+                    }
 
                     // Create User button - only show for admin
                     

@@ -13,6 +13,7 @@ import FirebaseFirestore
 @MainActor
 class UserProfileViewModel: ObservableObject {
     @Published var profileImageUrl: String?
+    @Published var associatedCustomers: [(id: String, email: String, name: String)] = []
     private let logger = LoggingService.shared
     
     func fetchProfileData() async -> (imageUrl: String?, name: String?) {
@@ -169,5 +170,40 @@ class UserProfileViewModel: ObservableObject {
                 completion(.success(()))
             }
         }
+    }
+    
+    func fetchAssociatedCustomers(customerIds: [String]) async {
+        guard !customerIds.isEmpty else {
+            logger.log("No customer IDs provided to fetch", level: .warning)
+            return
+        }
+        
+        logger.log("Fetching \(customerIds.count) associated customers for account manager")
+        
+        // Reset the current list
+        self.associatedCustomers = []
+        
+        let db = Firestore.firestore()
+        
+        for customerId in customerIds {
+            do {
+                let document = try await db.collection("users").document(customerId).getDocument()
+                
+                guard document.exists, let data = document.data() else {
+                    logger.log("Customer document not found: \(customerId)", level: .warning)
+                    continue
+                }
+                
+                let email = data["email"] as? String ?? ""
+                let name = data["name"] as? String ?? "Unknown Customer"
+                
+                self.associatedCustomers.append((id: customerId, email: email, name: name))
+                logger.log("Added customer to list: \(name) (\(email))")
+            } catch {
+                logger.log("Error fetching customer \(customerId): \(error.localizedDescription)", level: .error)
+            }
+        }
+        
+        logger.log("Finished loading \(self.associatedCustomers.count) associated customers")
     }
 }

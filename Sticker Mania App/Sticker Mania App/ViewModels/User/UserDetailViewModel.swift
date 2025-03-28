@@ -14,6 +14,7 @@ class UserDetailViewModel: ObservableObject {
     @Published var currentUser: User?
     @Published var isLoading = false
     @Published var error: String?
+    @Published var associatedCustomers: [(id: String, email: String, name: String)] = []
     
     private let db = Firestore.firestore()
     private let logger = LoggingService.shared
@@ -126,6 +127,9 @@ class UserDetailViewModel: ObservableObject {
                 let name = data["name"] as? String ?? ""
                 let role = UserRole(rawValue: data["role"] as? String ?? "") ?? .customer
                 
+                // Get customer IDs for account managers
+                let customerIds = data["customerIds"] as? [String] ?? []
+                
                 // Create user object
                 let user = User(
                     id: document.documentID,
@@ -134,12 +138,60 @@ class UserDetailViewModel: ObservableObject {
                     role: role,
                     brands: brands,
                     profilePictureUrl: profilePictureUrl,
-                    userRelationIds: nil
+                    userRelationIds: customerIds
                 )
                 
                 self?.logger.log("Successfully fetched user: \(name) (\(email)), role: \(role.rawValue)")
                 self?.user = user
+                
+                // If this is an account manager, fetch their associated customers
+                if role == .accountManager && !customerIds.isEmpty {
+                    self?.fetchAssociatedCustomers(customerIds: customerIds)
+                }
             }
+        }
+    }
+    
+    func fetchAssociatedCustomers(customerIds: [String]) {
+        logger.log("Fetching associated customers for account manager")
+        isLoading = true
+        
+        // Reset the current list
+        self.associatedCustomers = []
+        
+        let group = DispatchGroup()
+        
+        for customerId in customerIds {
+            group.enter()
+            
+            let customerRef = db.collection("users").document(customerId)
+            customerRef.getDocument { [weak self] document, err in
+                defer { group.leave() }
+                
+                if let err = err {
+                    self?.logger.log("Error fetching customer \(customerId): \(err.localizedDescription)", level: .error)
+                    return
+                }
+                
+                guard let document = document, document.exists,
+                      let data = document.data() else {
+                    self?.logger.log("Customer document not found: \(customerId)", level: .warning)
+                    return
+                }
+                
+                let email = data["email"] as? String ?? ""
+                let name = data["name"] as? String ?? "Unknown Customer"
+                
+                DispatchQueue.main.async {
+                    self?.associatedCustomers.append((id: customerId, email: email, name: name))
+                    self?.logger.log("Added customer to list: \(name) (\(email))")
+                }
+            }
+        }
+        
+        group.notify(queue: .main) { [weak self] in
+            self?.isLoading = false
+            self?.logger.log("Finished loading \(self?.associatedCustomers.count ?? 0) associated customers")
         }
     }
     

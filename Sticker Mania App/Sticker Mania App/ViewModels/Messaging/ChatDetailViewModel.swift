@@ -249,10 +249,77 @@ class ChatDetailViewModel: ObservableObject {
                         "unreadStatus": unreadStatus
                     ])
                 
+                // Send push notifications to other participants
+                let senderName = await getUserDisplayName(email: email)
+                await sendPushNotificationsToParticipants(
+                    chatData["participants"] as? [String] ?? [],
+                    senderName: senderName,
+                    messagePreview: text,
+                    chatId: chatId
+                )
+                
                 logger.log("Successfully sent text message")
             }
         } catch {
             logger.log("Error sending message: \(error.localizedDescription)", level: .error)
+        }
+    }
+
+    // Add these new methods for push notifications
+    private func getUserDisplayName(email: String) async -> String {
+        do {
+            let userDoc = try await db.collection("users").document(email).getDocument()
+            if let userData = userDoc.data(), let name = userData["name"] as? String {
+                return name
+            }
+            return email.components(separatedBy: "@").first ?? email
+        } catch {
+            logger.log("Error fetching user name: \(error.localizedDescription)", level: .error)
+            return email.components(separatedBy: "@").first ?? email
+        }
+    }
+
+    private func sendPushNotificationsToParticipants(_ participantEmails: [String], senderName: String, messagePreview: String, chatId: String) async {
+        logger.log("Preparing push notifications for chat: \(chatId)")
+        
+        print("Sending push notifications to \(participantEmails.count) participants")
+        for recipientEmail in participantEmails {
+            // Skip sending notification to the sender
+            if recipientEmail == Auth.auth().currentUser?.email {
+                continue
+            }
+            
+            logger.log("Checking if user \(recipientEmail) has FCM token")
+            
+            // Fetch FCM token for the recipient
+            do {
+                let userDoc = try await db.collection("users").document(recipientEmail).getDocument()
+                guard let userData = userDoc.data(), let fcmToken = userData["fcmToken"] as? String else {
+                    logger.log("No FCM token found for user: \(recipientEmail)")
+                    continue
+                }
+                
+                // Create notification data
+                let notificationData: [String: Any] = [
+                    "token": fcmToken,
+                    "notification": [
+                        "title": senderName,
+                        "body": messagePreview
+                    ],
+                    "data": [
+                        "chatId": chatId,
+                        "type": "message"
+                    ]
+                ]
+                
+                // Add to notifications collection to trigger Cloud Function
+                try await db.collection("notifications").addDocument(data: notificationData)
+                logger.log("Notification queued for \(recipientEmail)")
+                print("Notification queued for \(recipientEmail)")
+                
+            } catch {
+                logger.log("Error sending notification to \(recipientEmail): \(error.localizedDescription)", level: .error)
+            }
         }
     }
 
@@ -330,6 +397,15 @@ class ChatDetailViewModel: ObservableObject {
                         "lastMessageTimestamp": Timestamp(date: message.timestamp),
                         "unreadStatus": unreadStatus
                     ])
+                
+                // Send push notifications to other participants
+                let senderName = await getUserDisplayName(email: email)
+                await sendPushNotificationsToParticipants(
+                    chatData["participants"] as? [String] ?? [],
+                    senderName: senderName,
+                    messagePreview: "Image",
+                    chatId: chatId
+                )
                 
                 logger.log("Successfully sent image message")
             }
@@ -413,6 +489,15 @@ class ChatDetailViewModel: ObservableObject {
                         "unreadStatus": unreadStatus
                     ])
                 
+                // Send push notifications to other participants
+                let senderName = await getUserDisplayName(email: email)
+                await sendPushNotificationsToParticipants(
+                    chatData["participants"] as? [String] ?? [],
+                    senderName: senderName,
+                    messagePreview: "Video",
+                    chatId: chatId
+                )
+                
                 logger.log("Successfully sent video message")
             }
         } catch {
@@ -495,6 +580,15 @@ class ChatDetailViewModel: ObservableObject {
                         "unreadStatus": unreadStatus
                     ])
                 
+                // Send push notifications to other participants
+                let senderName = await getUserDisplayName(email: email)
+                await sendPushNotificationsToParticipants(
+                    chatData["participants"] as? [String] ?? [],
+                    senderName: senderName,
+                    messagePreview: "PDF",
+                    chatId: chatId
+                )
+                
                 logger.log("Successfully sent PDF message")
             }
         } catch {
@@ -506,4 +600,44 @@ class ChatDetailViewModel: ObservableObject {
         logger.log("Stopping message listener")
         listener?.remove()
     }
+
+    func saveUserFCMToken(_ token: String) {
+        guard let userEmail = Auth.auth().currentUser?.email else { 
+            LoggingService.shared.log("No user signed in to save FCM token", level: .warning)
+            return 
+        }
+        
+        let db = Firestore.firestore()
+        let userDocRef = db.collection("users").document(userEmail)
+        
+        // First check if document exists
+        userDocRef.getDocument { snapshot, error in
+            if let error = error {
+                LoggingService.shared.log("Error checking user document: \(error)", level: .error)
+                return
+            }
+            
+            if snapshot?.exists == true {
+                // Document exists, update it
+                userDocRef.updateData(["fcmToken": token]) { error in
+                    if let error = error {
+                        LoggingService.shared.log("Error updating FCM token: \(error)", level: .error)
+                    } else {
+                        LoggingService.shared.log("FCM token updated for user: \(userEmail)")
+                    }
+                }
+            } else {
+                // Document doesn't exist, create it
+                userDocRef.setData(["email": userEmail, "fcmToken": token]) { error in
+                    if let error = error {
+                        LoggingService.shared.log("Error creating user with FCM token: \(error)", level: .error)
+                    } else {
+                        LoggingService.shared.log("Created new user document with FCM token: \(userEmail)")
+                    }
+                }
+            }
+        }
+    }
+
+    
 }

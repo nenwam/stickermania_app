@@ -1,5 +1,6 @@
 import FirebaseFirestore
 import FirebaseAuth
+import UIKit
 
 class ChatListViewModel: ObservableObject {
     @Published var chats: [Chat] = []
@@ -78,6 +79,9 @@ class ChatListViewModel: ObservableObject {
                     title: title
                 )
             }
+            
+            // Update app badge count after loading chats
+            self.updateAppBadge()
         }
     }
     
@@ -146,5 +150,22 @@ class ChatListViewModel: ObservableObject {
     
     deinit {
         stopListening()
+    }
+    
+    // Update the app badge count based on unread messages
+    func updateAppBadge() {
+        guard let currentUserEmail = Auth.auth().currentUser?.email else { return }
+        
+        // Count unread messages across all chats
+        let unreadCount = self.chats.reduce(0) { count, chat in
+            return count + (chat.hasUnreadMessages(for: currentUserEmail) ? 1 : 0)
+        }
+        
+        logger.log("Updating app badge count to \(unreadCount)")
+        
+        // Update the app badge count
+        DispatchQueue.main.async {
+            UIApplication.shared.applicationIconBadgeNumber = unreadCount
+        }
     }
 }
