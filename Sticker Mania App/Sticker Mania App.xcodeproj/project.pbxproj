@@ -126,6 +126,7 @@
 
 /* Begin PBXFileReference section */
 		B33959252DB1789100C5033C /* KeyboardExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardExtensions.swift; sourceTree = "<group>"; };
+		B33959272DB1A60600C5033C /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		B355CC802D00D12200A1789D /* BackgroundLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLogo.swift; sourceTree = "<group>"; };
 		B355CC822D00D8A600A1789D /* ChatMultiCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMultiCreationView.swift; sourceTree = "<group>"; };
 		B355CC842D00D8B300A1789D /* ChatMultiCreationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMultiCreationViewModel.swift; sourceTree = "<group>"; };
@@ -311,6 +312,7 @@
 		B3B0CAE62CD161E600EF664F = {
 			isa = PBXGroup;
 			children = (
+				B33959272DB1A60600C5033C /* .gitignore */,
 				B3B0CAF12CD161E600EF664F /* Sticker Mania App */,
 				B3B0CB022CD161E800EF664F /* Sticker Mania AppTests */,
 				B3B0CB0C2CD161E800EF664F /* Sticker Mania AppUITests */,
