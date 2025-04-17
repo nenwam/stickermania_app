@@ -65,60 +65,87 @@ struct ChatMultiCreationView: View {
                     ProgressView()
                 } else {
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 20) {
-                            VStack(alignment: .leading) {
-                                Text("Select Customers")
-                                    .font(.headline)
-                                TextField("Search customers...", text: $customerSearchText)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .padding(.bottom, 8)
-                                SearchableSection(
-                                    title: "",
-                                    items: filteredCustomers,
-                                    selectedItems: $selectedCustomers
-                                )
+                        ScrollViewReader { scrollProxy in
+                            VStack(alignment: .leading, spacing: 20) {
+                                VStack(alignment: .leading) {
+                                    Text("Select Customers")
+                                        .font(.headline)
+                                    TextField("Search customers...", text: $customerSearchText)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        .padding(.bottom, 8)
+                                    SearchableSection(
+                                        title: "",
+                                        items: filteredCustomers,
+                                        selectedItems: $selectedCustomers,
+                                        searchText: $customerSearchText
+                                    )
+                                }
+
+                                Divider()
+                                    .padding(.vertical, 8)
+                                    .colorInvert()
+                                
+                                VStack(alignment: .leading) {
+                                    Text("Print Team Members")
+                                        .font(.headline)
+                                    TextField("Search print team...", text: $printTeamSearchText)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        .padding(.bottom, 8)
+                                    SearchableSection(
+                                        title: "",
+                                        items: filteredPrintTeam,
+                                        selectedItems: $printTeamParticipants,
+                                        searchText: $printTeamSearchText
+                                    )
+                                }
+
+                                Divider()
+                                    .padding(.vertical, 8)
+                                    .colorInvert()
+                                
+                                VStack(alignment: .leading) {
+                                    Text("Design Team Members")
+                                        .font(.headline)
+                                    TextField("Search design team...", text: $designTeamSearchText)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        .padding(.bottom, 8)
+                                    SearchableSection(
+                                        title: "",
+                                        items: filteredDesignTeam,
+                                        selectedItems: $designTeamParticipants,
+                                        searchText: $designTeamSearchText
+                                    )
+                                }
+
+                                Divider()
+                                    .padding(.vertical, 8)
+                                    .colorInvert()
+                                
+                                VStack(alignment: .leading) {
+                                    Text("File Setup Team Members")
+                                        .font(.headline)
+                                    TextField("Search file setup team...", text: $fileSetupSearchText)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        .padding(.bottom, 8)
+                                        .onChange(of: fileSetupSearchText) { newValue in
+                                            if !newValue.isEmpty {
+                                                withAnimation {
+                                                    scrollProxy.scrollTo("fileSetupResults", anchor: .top)
+                                                }
+                                            }
+                                        }
+                                    SearchableSection(
+                                        title: "",
+                                        items: filteredFileSetupTeam,
+                                        selectedItems: $fileSetupParticipants,
+                                        searchText: $fileSetupSearchText
+                                    )
+                                    .id("fileSetupResults")
+                                }
                             }
-                            
-                            VStack(alignment: .leading) {
-                                Text("Print Team Members")
-                                    .font(.headline)
-                                TextField("Search print team...", text: $printTeamSearchText)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .padding(.bottom, 8)
-                                SearchableSection(
-                                    title: "",
-                                    items: filteredPrintTeam,
-                                    selectedItems: $printTeamParticipants
-                                )
-                            }
-                            
-                            VStack(alignment: .leading) {
-                                Text("Design Team Members")
-                                    .font(.headline)
-                                TextField("Search design team...", text: $designTeamSearchText)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .padding(.bottom, 8)
-                                SearchableSection(
-                                    title: "",
-                                    items: filteredDesignTeam,
-                                    selectedItems: $designTeamParticipants
-                                )
-                            }
-                            
-                            VStack(alignment: .leading) {
-                                Text("File Setup Team Members")
-                                    .font(.headline)
-                                TextField("Search file setup team...", text: $fileSetupSearchText)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .padding(.bottom, 8)
-                                SearchableSection(
-                                    title: "",
-                                    items: filteredFileSetupTeam,
-                                    selectedItems: $fileSetupParticipants
-                                )
-                            }
+                            .padding()
+                            .padding(.bottom, 100)
                         }
-                        .padding()
                     }
                 }
             }
@@ -173,6 +200,7 @@ struct SearchableSection: View {
     let title: String
     let items: [String]
     @Binding var selectedItems: Set<String>
+    @Binding var searchText: String
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -197,6 +225,7 @@ struct SearchableSection: View {
                     } else {
                         selectedItems.insert(item)
                     }
+                    searchText = ""
                 }
                 .padding(.vertical, 8)
             }

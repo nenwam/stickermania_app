@@ -13,6 +13,7 @@ struct ChatDetailView: View {
     @State private var showingDocumentPicker = false
     @State private var showingPhotoPicker = false // New state variable
     @State private var messageParticipants: [User] = []
+    @GestureState private var scrollVelocity: CGFloat = 0
 
     private let messagesPerPage = 10
     
@@ -105,6 +106,17 @@ struct ChatDetailView: View {
                     }
                     .padding()
                 }
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 5, coordinateSpace: .local)
+                        .updating($scrollVelocity) { value, state, _ in
+                            let velocity = value.translation.height / max(1, value.time.timeIntervalSince(.now))
+                            state = velocity
+                            
+                            if velocity > 50 {
+                                UIApplication.shared.endEditing()
+                            }
+                        }
+                )
                 .onChange(of: viewModel.messages) { _ in
                     if !viewModel.isLoadingMore && !viewModel.loadedOlderMessages {
                         withAnimation {
@@ -112,7 +124,6 @@ struct ChatDetailView: View {
                         }
                     }
                     
-                    // Reset the loadedOlderMessages flag after the view has been updated
                     if viewModel.loadedOlderMessages && !viewModel.isLoadingMore {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             viewModel.loadedOlderMessages = false
@@ -138,7 +149,7 @@ struct ChatDetailView: View {
                 TextField("Message", text: $messageText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .disabled(isLoading)
-
+                    .dismissKeyboardOnSwipeDown()
                 Button(action: {
                     Task {
                         isLoading = true

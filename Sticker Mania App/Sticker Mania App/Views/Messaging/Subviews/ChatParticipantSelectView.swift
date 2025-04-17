@@ -50,8 +50,8 @@ struct ChatParticipantSelectView: View {
             }
             
             // Selected participants
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
+            ScrollView(showsIndicators: true) {
+                VStack(alignment: .leading) {
                     ForEach($selectedParticipants, id: \.self) { $participantId in
                         if let user = viewModel.getUser(by: participantId) {
                             Chip(text: "\(user.name) (\(user.email))") {
@@ -82,7 +82,7 @@ struct Chip: View {
                     .foregroundColor(.gray)
             }
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 8)
         .padding(.vertical, 6)
         .background(Color.gray.opacity(0.2))
         .clipShape(Capsule())

@@ -24,8 +24,10 @@ struct AddOrderItem: View {
                     TextField("Item Name", text: $name)
                     TextField("Quantity", text: $quantity)
                         .keyboardType(.numberPad)
+                        .addDoneButtonToKeyboard()
                     TextField("Price", text: $price)
                         .keyboardType(.decimalPad)
+                        .addDoneButtonToKeyboard()
                     Picker("Product Type", selection: $productType) {
                         ForEach(ProductType.allCases, id: \.self) { type in
                             Text(type.rawValue.capitalized).tag(type)

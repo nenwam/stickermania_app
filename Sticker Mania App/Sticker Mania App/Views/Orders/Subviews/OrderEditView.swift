@@ -30,8 +30,10 @@ struct OrderEditView: View {
                             HStack {
                                 TextField("Quantity", value: $item.quantity, formatter: NumberFormatter())
                                     .keyboardType(.numberPad)
+                                    .addDoneButtonToKeyboard()
                                 TextField("Price", value: $item.price, formatter: NumberFormatter())
                                     .keyboardType(.decimalPad)
+                                    .addDoneButtonToKeyboard()
                                 Picker("Type", selection: $item.productType) {
                                     ForEach(ProductType.allCases, id: \.self) { type in
                                         Text(type.rawValue.capitalized).tag(type)

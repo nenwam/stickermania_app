@@ -51,9 +51,9 @@ struct OrderCustomerLookupView: View {
                         // }
                         // .disabled(selectedCustomers.isEmpty)
                         // .padding(.horizontal)
-                        OrderSearchView()
+                        OrderSearchView().addDoneButtonToKeyboard()
                     } else {
-                        UserSearchView()
+                        UserSearchView().addDoneButtonToKeyboard()
                     }
                     
                     Spacer()
@@ -61,7 +61,9 @@ struct OrderCustomerLookupView: View {
                 
                 BackgroundLogo(opacity: 0.4)
             }
+            .dismissKeyboardOnSwipeDown()
         }
+        .dismissKeyboardOnSwipeDown()
     }
 }
 

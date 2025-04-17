@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B33959262DB1789100C5033C /* KeyboardExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B33959252DB1789100C5033C /* KeyboardExtensions.swift */; };
 		B355CC812D00D12200A1789D /* BackgroundLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B355CC802D00D12200A1789D /* BackgroundLogo.swift */; };
 		B355CC832D00D8A600A1789D /* ChatMultiCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B355CC822D00D8A600A1789D /* ChatMultiCreationView.swift */; };
 		B355CC852D00D8B300A1789D /* ChatMultiCreationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B355CC842D00D8B300A1789D /* ChatMultiCreationViewModel.swift */; };
@@ -124,6 +125,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B33959252DB1789100C5033C /* KeyboardExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardExtensions.swift; sourceTree = "<group>"; };
 		B355CC802D00D12200A1789D /* BackgroundLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLogo.swift; sourceTree = "<group>"; };
 		B355CC822D00D8A600A1789D /* ChatMultiCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMultiCreationView.swift; sourceTree = "<group>"; };
 		B355CC842D00D8B300A1789D /* ChatMultiCreationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMultiCreationViewModel.swift; sourceTree = "<group>"; };
@@ -520,6 +522,7 @@
 			isa = PBXGroup;
 			children = (
 				B3694F0A2D9219C00061035A /* LoggingService.swift */,
+				B33959252DB1789100C5033C /* KeyboardExtensions.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -845,6 +848,7 @@
 				B3B0CB682CD19E9300EF664F /* OrderDetailViewModel.swift in Sources */,
 				B3B0CB5E2CD19E9300EF664F /* ChatDetailView.swift in Sources */,
 				B39A0FBC2CD2F0AA00E45AE0 /* ChatCreationView.swift in Sources */,
+				B33959262DB1789100C5033C /* KeyboardExtensions.swift in Sources */,
 				B3B0CB742CD19E9300EF664F /* AdminPanelController.swift in Sources */,
 				B3B3F1D22CDD3F0F005997A0 /* AuthViewModel.swift in Sources */,
 				B3B0CB6A2CD19E9300EF664F /* AuthenticationView.swift in Sources */,

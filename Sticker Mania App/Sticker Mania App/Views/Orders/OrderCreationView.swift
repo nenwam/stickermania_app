@@ -34,6 +34,7 @@ struct OrderCreationView: View {
                     discountSection
                     summarySection
                 }
+                // .dismissKeyboardOnTapOutside()
                 .navigationTitle("Create Order")
                 .toolbar {
                     ToolbarItemGroup(placement: .navigationBarLeading) {
@@ -90,6 +91,7 @@ struct OrderCreationView: View {
             
             BackgroundLogo(opacity: 0.2)
         }
+        
     }
     
     private var customerSection: some View {
@@ -102,6 +104,7 @@ struct OrderCreationView: View {
                     }
                 }
         }
+        
     }
     
     private var brandSection: some View {
@@ -180,6 +183,7 @@ struct OrderCreationView: View {
         Section("Tax") {
             TextField("Tax Amount", text: $taxAmount)
                 .keyboardType(.decimalPad)
+                .addDoneButtonToKeyboard()
                 .onChange(of: taxAmount) { newValue in
                     if let tax = Double(newValue) {
                         viewModel.items.removeAll { $0.name == "Tax" }
@@ -200,6 +204,7 @@ struct OrderCreationView: View {
         Section("Discount") {
             TextField("Discount Amount", text: $discountAmount)
                 .keyboardType(.decimalPad)
+                // .addDoneButtonToKeyboard()
                 .onChange(of: discountAmount) { newValue in
                     if let discount = Double(newValue) {
                         viewModel.items.removeAll { $0.name == "Discount" }

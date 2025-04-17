@@ -23,6 +23,7 @@ struct OrderSearchView: View {
                         await viewModel.searchUsers(matching: newValue)
                     }
                 }
+                
             
             // Search results
             if !searchText.isEmpty {
