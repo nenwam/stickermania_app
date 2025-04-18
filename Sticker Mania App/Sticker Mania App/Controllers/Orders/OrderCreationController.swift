@@ -4,7 +4,7 @@ class OrderCreationController {
     private let db = Firestore.firestore()
     
     func createOrder(_ order: Order, completion: @escaping (Result<Void, Error>) -> Void) {
-        let orderData: [String: Any] = [
+        var orderData: [String: Any] = [
             "customerEmail": order.customerEmail,
             "accountManagerEmail": order.accountManagerEmail,
             "brandId": order.brandId,
@@ -30,6 +30,16 @@ class OrderCreationController {
                 ]
             }
         ]
+        
+        // Add customerUid if available
+        if let customerUid = order.customerUid {
+            orderData["customerUid"] = customerUid
+        }
+        
+        // Add customerName if available
+        if let customerName = order.customerName {
+            orderData["customerName"] = customerName
+        }
         
         db.collection("orders").document(order.id).setData(orderData) { error in
             if let error = error {

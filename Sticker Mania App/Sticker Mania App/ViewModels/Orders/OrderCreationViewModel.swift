@@ -175,6 +175,15 @@ class OrderCreationViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
+        // Make sure we have the brand info from selectedBrand if available
+        if let selected = selectedBrand {
+            brandId = selected.id
+            brandName = selected.name
+            logger.log("Using selected brand: \(selected.name) (ID: \(selected.id))")
+        } else {
+            logger.log("No brand selected, using current values: \(brandName) (ID: \(brandId))", level: .warning)
+        }
+        
         guard let currentUser = Auth.auth().currentUser else {
             isLoading = false
             errorMessage = "User not authenticated"
@@ -189,36 +198,51 @@ class OrderCreationViewModel: ObservableObject {
         // Get current user's UID for new orders
         let customerUid = currentUser.uid
         
-        logger.log("Preparing order with ID: \(uuid), items: \(items.count), attachments: \(attachments.count)")
-        let order = Order(
-            id: uuid,
-            customerEmail: customerId,
-            customerUid: customerUid,
-            accountManagerEmail: "", // Empty for now
-            brandId: brandId,
-            brandName: brandName,
-            items: items,
-            status: .pending, // Use the enum value instead of string
-            createdAt: timestamp,
-            totalAmount: totalAmount,
-            attachments: attachments
-        )
-        
-        // Use the controller we defined as a property
-        logger.log("Submitting order to database")
-        controller.createOrder(order) { [weak self] result in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                
-                switch result {
-                case .success:
-                    self?.logger.log("Order created successfully: \(uuid)")
-                    self?.createdOrder = order
-                    self?.fetchOrders(forCustomerId: self?.customerId ?? "")
-                case .failure(let error):
-                    self?.logger.log("Order creation failed: \(error.localizedDescription)", level: .error)
-                    self?.showError = true
-                    self?.errorMessage = error.localizedDescription
+        // Fetch the customer name from the users collection
+        let db = Firestore.firestore()
+        db.collection("users").document(customerId).getDocument { [weak self] snapshot, error in
+            guard let self = self else { return }
+            
+            var customerName: String? = nil
+            if let data = snapshot?.data(), let name = data["name"] as? String {
+                customerName = name
+                self.logger.log("Found customer name: \(name)")
+            } else {
+                self.logger.log("Could not find customer name for email: \(self.customerId)", level: .warning)
+            }
+            
+            self.logger.log("Preparing order with ID: \(uuid), items: \(self.items.count), attachments: \(self.attachments.count)")
+            let order = Order(
+                id: uuid,
+                customerEmail: self.customerId,
+                customerUid: customerUid,
+                accountManagerEmail: "", // Empty for now
+                brandId: self.brandId,
+                brandName: self.brandName,
+                customerName: customerName,
+                items: self.items,
+                status: .pending, // Use the enum value instead of string
+                createdAt: timestamp,
+                totalAmount: self.totalAmount,
+                attachments: self.attachments
+            )
+            
+            // Use the controller we defined as a property
+            self.logger.log("Submitting order to database")
+            self.controller.createOrder(order) { [weak self] result in
+                DispatchQueue.main.async {
+                    self?.isLoading = false
+                    
+                    switch result {
+                    case .success:
+                        self?.logger.log("Order created successfully: \(uuid)")
+                        self?.createdOrder = order
+                        self?.fetchOrders(forCustomerId: self?.customerId ?? "")
+                    case .failure(let error):
+                        self?.logger.log("Order creation failed: \(error.localizedDescription)", level: .error)
+                        self?.showError = true
+                        self?.errorMessage = error.localizedDescription
+                    }
                 }
             }
         }
@@ -237,6 +261,8 @@ class OrderCreationViewModel: ObservableObject {
                 self?.logger.log("No data found for customer ID: \(customerId)", level: .warning)
                 self?.brands = []
                 self?.selectedBrand = nil
+                self?.brandId = ""
+                self?.brandName = ""
                 return
             }
             
@@ -244,6 +270,8 @@ class OrderCreationViewModel: ObservableObject {
                 self?.logger.log("No brands array found in customer data", level: .warning)
                 self?.brands = []
                 self?.selectedBrand = nil
+                self?.brandId = ""
+                self?.brandName = ""
                 return
             }
             
@@ -262,9 +290,18 @@ class OrderCreationViewModel: ObservableObject {
             }
             
             self?.brands = extractedBrands
-            self?.selectedBrand = self?.brands.first
-            if let first = self?.selectedBrand {
-                self?.logger.log("Selected default brand: \(first.name)")
+            
+            // Set the first brand as the selected brand
+            if let firstBrand = extractedBrands.first {
+                self?.selectedBrand = firstBrand
+                self?.brandId = firstBrand.id
+                self?.brandName = firstBrand.name
+                self?.logger.log("Auto-selected default brand: \(firstBrand.name) with ID: \(firstBrand.id)")
+            } else {
+                self?.selectedBrand = nil
+                self?.brandId = ""
+                self?.brandName = ""
+                self?.logger.log("No brands available to select", level: .warning)
             }
         }
     }

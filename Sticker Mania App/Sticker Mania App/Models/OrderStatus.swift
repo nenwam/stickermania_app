@@ -1,3 +1,5 @@
+import Foundation
+
 enum OrderStatus: String, CaseIterable {
     case pending
     case inProgress

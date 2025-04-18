@@ -39,6 +39,7 @@ class OrderListController {
                         accountManagerEmail: data["accountManagerEmail"] as? String ?? "",
                         brandId: data["brandId"] as? String ?? "",
                         brandName: data["brandName"] as? String ?? "",
+                        customerName: data["customerName"] as? String,
                         items: (data["items"] as? [[String: Any]] ?? []).compactMap { itemData in
                             OrderItem(
                                 id: itemData["id"] as? String ?? "",
@@ -139,6 +140,7 @@ class OrderListController {
                 accountManagerEmail: data["accountManagerEmail"] as? String ?? "",
                 brandId: data["brandId"] as? String ?? "",
                 brandName: data["brandName"] as? String ?? "",
+                customerName: data["customerName"] as? String,
                 items: (data["items"] as? [[String: Any]] ?? []).compactMap { itemData in
                     OrderItem(
                         id: itemData["id"] as? String ?? "",
@@ -183,6 +185,20 @@ class OrderListController {
                 }
                 
                 completion(.success(brands))
+            }
+    }
+    
+    func fetchRecentOrders(limit: Int, completion: @escaping (Result<[Order], Error>) -> Void) {
+        db.collection("orders")
+            .order(by: "createdAt", descending: true)
+            .limit(to: limit)
+            .getDocuments { [weak self] snapshot, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                
+                self?.processOrderDocuments(snapshot, completion: completion)
             }
     }
 }

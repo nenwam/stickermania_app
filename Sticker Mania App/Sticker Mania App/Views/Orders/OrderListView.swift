@@ -66,7 +66,7 @@ struct OrderListView: View {
                     Picker("Status Filter", selection: $selectedStatus) {
                         Text("All Status").tag(Optional<OrderStatus>.none)
                         ForEach(OrderStatus.allCases, id: \.self) { status in
-                            Text(status.rawValue).tag(Optional(status))
+                            Text(status.rawValue.capitalized == "Inprogress" ? "In Progress" : status.rawValue.capitalized).tag(Optional(status))
                         }
                     }
                     .pickerStyle(.menu)

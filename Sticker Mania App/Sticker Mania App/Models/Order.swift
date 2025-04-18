@@ -8,6 +8,7 @@ struct Order {
     let accountManagerEmail: String
     var brandId: String
     var brandName: String
+    var customerName: String?
     var items: [OrderItem]
     var status: OrderStatus
     let createdAt: Date
@@ -54,6 +55,10 @@ func saveOrder(order: Order) {
     
     if let customerUid = order.customerUid {
         orderData["customerUid"] = customerUid
+    }
+    
+    if let customerName = order.customerName {
+        orderData["customerName"] = customerName
     }
     
     orderRef.setData(orderData) { error in

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B33959262DB1789100C5033C /* KeyboardExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B33959252DB1789100C5033C /* KeyboardExtensions.swift */; };
+		B33959292DB1CDA900C5033C /* OrderSearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B33959282DB1CDA900C5033C /* OrderSearchViewModel.swift */; };
 		B355CC812D00D12200A1789D /* BackgroundLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B355CC802D00D12200A1789D /* BackgroundLogo.swift */; };
 		B355CC832D00D8A600A1789D /* ChatMultiCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B355CC822D00D8A600A1789D /* ChatMultiCreationView.swift */; };
 		B355CC852D00D8B300A1789D /* ChatMultiCreationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B355CC842D00D8B300A1789D /* ChatMultiCreationViewModel.swift */; };
@@ -127,6 +128,7 @@
 /* Begin PBXFileReference section */
 		B33959252DB1789100C5033C /* KeyboardExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardExtensions.swift; sourceTree = "<group>"; };
 		B33959272DB1A60600C5033C /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		B33959282DB1CDA900C5033C /* OrderSearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderSearchViewModel.swift; sourceTree = "<group>"; };
 		B355CC802D00D12200A1789D /* BackgroundLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundLogo.swift; sourceTree = "<group>"; };
 		B355CC822D00D8A600A1789D /* ChatMultiCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMultiCreationView.swift; sourceTree = "<group>"; };
 		B355CC842D00D8B300A1789D /* ChatMultiCreationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMultiCreationViewModel.swift; sourceTree = "<group>"; };
@@ -282,6 +284,7 @@
 			isa = PBXGroup;
 			children = (
 				B39A0FAD2CD2B30C00E45AE0 /* OrderEditViewModel.swift */,
+				B33959282DB1CDA900C5033C /* OrderSearchViewModel.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
@@ -835,6 +838,7 @@
 				B3B0CB702CD19E9300EF664F /* Permissions.swift in Sources */,
 				B3B0CB7B2CD1B05200EF664F /* OrderCreationTest.swift in Sources */,
 				B3B0CB652CD19E9300EF664F /* AdminPanelViewModel.swift in Sources */,
+				B33959292DB1CDA900C5033C /* OrderSearchViewModel.swift in Sources */,
 				B375F7912CEFCAD200A6D034 /* IdentifiableURL.swift in Sources */,
 				B355CC832D00D8A600A1789D /* ChatMultiCreationView.swift in Sources */,
 				B3B3F1D82CDD7BB5005997A0 /* CustomerHomeView.swift in Sources */,

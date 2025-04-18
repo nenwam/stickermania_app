@@ -35,6 +35,7 @@ struct OrderCreationView: View {
                     summarySection
                 }
                 // .dismissKeyboardOnTapOutside()
+                .addDoneButtonToKeyboard()
                 .navigationTitle("Create Order")
                 .toolbar {
                     ToolbarItemGroup(placement: .navigationBarLeading) {
@@ -117,6 +118,7 @@ struct OrderCreationView: View {
                             viewModel.selectedBrand = brand
                             viewModel.brandId = brand.id
                             viewModel.brandName = brand.name
+                            print("Selected default brand: \(brand.name) with ID: \(brand.id)")
                         }
                 } else {
                     Picker("Select Brand", selection: $viewModel.selectedBrand) {
@@ -130,6 +132,9 @@ struct OrderCreationView: View {
                         if let brand = newValue {
                             viewModel.brandId = brand.id
                             viewModel.brandName = brand.name
+                            print("Selected brand from picker: \(brand.name) with ID: \(brand.id)")
+                        } else {
+                            print("Brand selection was cleared")
                         }
                     }
                 }
@@ -183,7 +188,7 @@ struct OrderCreationView: View {
         Section("Tax") {
             TextField("Tax Amount", text: $taxAmount)
                 .keyboardType(.decimalPad)
-                .addDoneButtonToKeyboard()
+                // .addDoneButtonToKeyboard()
                 .onChange(of: taxAmount) { newValue in
                     if let tax = Double(newValue) {
                         viewModel.items.removeAll { $0.name == "Tax" }

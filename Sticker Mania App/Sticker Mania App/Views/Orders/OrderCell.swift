@@ -22,7 +22,7 @@ struct OrderCell: View {
                 Text("Order #\(order.id)")
                     .font(.headline)
                 Spacer()
-                Text(order.status == .inProgress ? "In Progress" : order.status.rawValue)
+                Text(order.status == .inProgress ? "In Progress" : order.status.rawValue.capitalized)
                     .font(.subheadline)
             }
             

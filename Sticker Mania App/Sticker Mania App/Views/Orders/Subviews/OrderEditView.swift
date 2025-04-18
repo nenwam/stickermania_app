@@ -18,7 +18,7 @@ struct OrderEditView: View {
                 Section("Order Status") {
                     Picker("Status", selection: $viewModel.status) {
                         ForEach(OrderStatus.allCases, id: \.self) { status in
-                            Text(status.rawValue.capitalized).tag(status)
+                            Text(status.rawValue.capitalized == "Inprogress" ? "In Progress" : status.rawValue.capitalized).tag(status)
                         }
                     }
                 }
@@ -30,11 +30,11 @@ struct OrderEditView: View {
                             HStack {
                                 TextField("Quantity", value: $item.quantity, formatter: NumberFormatter())
                                     .keyboardType(.numberPad)
-                                    .addDoneButtonToKeyboard()
+                                    // .addDoneButtonToKeyboard()
                                 TextField("Price", value: $item.price, formatter: NumberFormatter())
                                     .keyboardType(.decimalPad)
                                     .addDoneButtonToKeyboard()
-                                Picker("Type", selection: $item.productType) {
+                                Picker("", selection: $item.productType) {
                                     ForEach(ProductType.allCases, id: \.self) { type in
                                         Text(type.rawValue.capitalized).tag(type)
                                     }
