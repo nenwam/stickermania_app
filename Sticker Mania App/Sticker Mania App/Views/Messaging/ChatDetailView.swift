@@ -1,5 +1,7 @@
 import SwiftUI
 import PhotosUI
+import FirebaseAuth
+import UniformTypeIdentifiers
 
 struct ChatDetailView: View {
     let chatId: String
@@ -9,11 +11,16 @@ struct ChatDetailView: View {
     @State private var showingParticipants = false
     @State private var selectedMedia: PhotosPickerItem?
     @State private var selectedImageData: Data?
-    @State private var enlargedImage: IdentifiableURL?
     @State private var showingDocumentPicker = false
-    @State private var showingPhotoPicker = false // New state variable
+    @State private var showingPhotoPicker = false
     @State private var messageParticipants: [User] = []
     @GestureState private var scrollVelocity: CGFloat = 0
+    @Environment(\.presentationMode) private var presentationMode
+    
+    // Add state for QuickLook
+    @State private var previewItemURL: URL? = nil
+    @State private var loadingMediaId: String? = nil
+    @State private var isUploadingMedia = false // State to track media uploads
 
     private let messagesPerPage = 10
     
@@ -39,72 +46,23 @@ struct ChatDetailView: View {
                         }
 
                         ForEach(viewModel.messages) { message in
-                            if let mediaUrl = message.mediaUrl {
-                                if message.mediaType == .image {
-                                    Button(action: {
-                                        if let url = URL(string: mediaUrl) {
-                                            enlargedImage = IdentifiableURL(url: url)
-                                        }
-                                    }) {
-                                        AsyncImage(url: URL(string: mediaUrl)) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                ProgressView()
-                                            case .success(let image):
-                                                image
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(maxWidth: 200)
-                                                    .cornerRadius(8)
-                                            case .failure:
-                                                Image(systemName: "photo")
-                                                    .foregroundColor(.gray)
-                                            @unknown default:
-                                                EmptyView()
-                                            }
-                                        }
-                                    }
-                                } else if message.mediaType == .video {
-                                    Link(destination: URL(string: mediaUrl)!) {
-                                        VStack {
-                                            if let url = URL(string: mediaUrl) {
-                                                VideoThumbnailView(videoURL: url)
-                                                    .frame(width: 200, height: 150)
-                                                    .cornerRadius(8)
-                                            }
-                                            Text("View Video")
-                                                .font(.caption)
-                                        }
-                                        .frame(maxWidth: 200)
-                                        .padding()
-                                        .background(Color.gray.opacity(0.1))
-                                        .cornerRadius(8)
-                                    }
-                                } else if message.mediaType == .pdf {
-                                    Link(destination: URL(string: mediaUrl)!) {
-                                        VStack {
-                                            Image(systemName: "doc.fill")
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 60, height: 60)
-                                                .foregroundColor(.red)
-                                            Text("View PDF")
-                                                .font(.caption)
-                                        }
-                                        .frame(maxWidth: 200)
-                                        .padding()
-                                        .background(Color.gray.opacity(0.1))
-                                        .cornerRadius(8)
-                                    }
-                                }
-                            }
-                            if (message.mediaType != .image && message.mediaType != .video && message.mediaType != .pdf) {
+                            if let mediaUrl = message.mediaUrl, message.mediaType != nil, message.mediaType != .text {
+                                MessageMedia(message: message, 
+                                             participants: viewModel.participants, 
+                                             mediaType: message.mediaType!, 
+                                             loadingMediaId: $loadingMediaId, 
+                                             previewItemURL: $previewItemURL)
+                                    .id(message.id)
+                            } else if message.text != nil && !message.text!.isEmpty {
                                 MessageBubble(message: message, participants: viewModel.participants)
                                     .id(message.id)
                             }
                         }
                     }
                     .padding()
+                }
+                .refreshable {
+                    await viewModel.loadMoreMessages(chatId: chatId)
                 }
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 5, coordinateSpace: .local)
@@ -178,9 +136,6 @@ struct ChatDetailView: View {
         .sheet(isPresented: $showingParticipants) {
             ChatParticipantsView(participants: viewModel.participants, chatType: viewModel.chatType)
         }
-        .sheet(item: $enlargedImage) { identifiableURL in
-            EnlargedImageView(imageUrl: identifiableURL.url)
-        }
         .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedMedia, matching: .any(of: [.images, .videos]))
         .fileImporter(
             isPresented: $showingDocumentPicker,
@@ -188,34 +143,61 @@ struct ChatDetailView: View {
             allowsMultipleSelection: false
         ) { result in
             Task {
+                // Set uploading state
+                isUploadingMedia = true
+                // Ensure state is reset on exit
+                defer { isUploadingMedia = false }
+                
                 do {
-                    let fileUrl = try result.get().first!
+                    guard let fileUrl = try result.get().first else {
+                        print("No file URL received from picker.")
+                        return
+                    }
+                    print("PDF selected: \(fileUrl.lastPathComponent)")
+                    print("Attempting to load data from URL: \(fileUrl)")
+                    
+                    // Ensure the app has permission to access the file URL
+                    let accessing = fileUrl.startAccessingSecurityScopedResource()
+                    defer { if accessing { fileUrl.stopAccessingSecurityScopedResource() } }
+                    
                     let data = try Data(contentsOf: fileUrl)
-                    isLoading = true
+                    print("Successfully loaded PDF data: \(data.count) bytes")
+                    
+                    // isLoading = true // Use isUploadingMedia instead
+                    print("Calling viewModel.sendPDF")
                     await viewModel.sendPDF(data, chatId: chatId)
-                    isLoading = false
+                    print("viewModel.sendPDF finished")
+                    // isLoading = false // Use isUploadingMedia instead
+                    
                 } catch {
-                    print("Error loading PDF: \(error.localizedDescription)")
+                    print("Error processing selected PDF: \(error.localizedDescription)")
+                    // Potentially display an error message to the user here
+                    // isLoading = false // Use isUploadingMedia instead
                 }
             }
         }
         .onChange(of: selectedMedia) { item in
             guard let item = item else { return }
             Task {
+                // Set uploading state
+                isUploadingMedia = true
+                // Ensure state is reset on exit
+                defer { isUploadingMedia = false }
+                
                 do {
                     if let data = try await item.loadTransferable(type: Data.self) {
                         if let typeIdentifier = item.supportedContentTypes.first {
                             print("Type identifier: \(typeIdentifier)")
                             if typeIdentifier.conforms(to: .movie) {
                                 print("Video data loaded successfully")
-                                isLoading = true
+                                // isLoading = true // Use isUploadingMedia instead
                                 await viewModel.sendVideo(data, chatId: chatId)
-                                isLoading = false
+                                // isLoading = false // Use isUploadingMedia instead
                             } else if typeIdentifier.conforms(to: .image) {
                                 print("Image data loaded successfully")
-                                isLoading = true
+                                // isLoading = true // Use isUploadingMedia instead
                                 await viewModel.sendImage(data, chatId: chatId)
-                                isLoading = false
+                                // isLoading = false // Use isUploadingMedia instead
                             }
                         }
                     } else {
@@ -235,7 +217,15 @@ struct ChatDetailView: View {
         }
         .onDisappear {
             viewModel.stopListening()
+            
+            // Reset the active navigation in ChatListView when this view disappears
+            NotificationCenter.default.post(
+                name: Notification.Name("ResetChatNavigation"),
+                object: nil
+            )
+            print("ChatDetailView: Posted ResetChatNavigation notification")
         }
+        .quickLookPreview($previewItemURL, in: previewItemURL.map { [$0] } ?? [])
     }
 }
 

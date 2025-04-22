@@ -56,10 +56,16 @@ exports.sendChatNotification = onDocumentCreated(
                   body: notification.body
                 },
                 badge: 1,
-                sound: "default"
-              }
+                sound: "default",
+                // Include chatId at the aps level to make it accessible when app is in background
+                "chatId": data.chatId || ""
+              },
+              // Also include data as a custom field in the payload
+              "data": data
             }
-          }
+          },
+          // Include top-level fields for direct access when handling notification
+          "chatId": data.chatId || ""
         };
 
         const response = await admin.messaging().send(message);

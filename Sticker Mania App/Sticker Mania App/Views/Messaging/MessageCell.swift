@@ -51,6 +51,7 @@ struct MessageCell_Previews: PreviewProvider {
                 senderId: "user1", 
                 text: "Hello, this is a sample message",
                 mediaUrl: nil,
+                thumbnailUrl: nil,
                 mediaType: nil,
                 timestamp: Date()
             ),

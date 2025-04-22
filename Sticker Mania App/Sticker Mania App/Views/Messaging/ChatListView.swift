@@ -12,12 +12,19 @@ struct ChatListView: View {
     @State private var selectedChatType: ChatType = .team
     @State private var profileImageUrl: String?
     @State private var profileName: String?
+    @State private var activeNavigation: String? = nil
+    @Binding var selectedChatId: String?
+    
+    // States for delete confirmation
+    @State private var showDeleteConfirmation = false
+    @State private var chatToDelete: String? = nil
+    
     var filteredChats: [Chat] {
         // Get current user's email
         let currentUserEmail = Auth.auth().currentUser?.email ?? ""
         
         let filtered = viewModel.chats.filter { chat in
-            if authViewModel.userRole == .admin || authViewModel.userRole == .accountManager {
+            if authViewModel.userRole == .admin || authViewModel.userRole == .accountManager || authViewModel.userRole == .employee {
                 return chat.type == selectedChatType && chat.participants.contains(currentUserEmail)
             } else {
                 return chat.participants.contains(currentUserEmail)
@@ -27,6 +34,10 @@ struct ChatListView: View {
         print("Filtered Chats for \(selectedChatType.rawValue): \(filtered.map { $0.id })")
         print("All participants: \(filtered.map { $0.participants })")
         return filtered
+    }
+    
+    init(selectedChatId: Binding<String?> = .constant(nil)) {
+        self._selectedChatId = selectedChatId
     }
     
     var body: some View {
@@ -62,7 +73,7 @@ struct ChatListView: View {
                 Spacer()
                     .frame(height: 12)
                 
-                if authViewModel.userRole == .admin || authViewModel.userRole == .accountManager {
+                if authViewModel.userRole == .admin || authViewModel.userRole == .accountManager || authViewModel.userRole == .employee {
                     HStack {
                         Picker("Chat Type", selection: $selectedChatType) {
                             Text("Team").tag(ChatType.team)
@@ -85,9 +96,50 @@ struct ChatListView: View {
                     }
                 }
                 
-                List(filteredChats) { chat in
-                    NavigationLink(destination: ChatDetailView(chatId: chat.id)) {
-                        MessageCellView(chat: chat, viewModel: viewModel)
+                if selectedChatType == .team {
+                    List(filteredChats) { chat in
+                        NavigationLink(
+                            destination: ChatDetailView(chatId: chat.id),
+                            tag: chat.id,
+                            selection: $activeNavigation
+                        ) {
+                            MessageCellView(chat: chat, viewModel: viewModel)
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            if viewModel.canDeleteChats {
+                                Button(role: .destructive) {
+                                    chatToDelete = chat.id
+                                    showDeleteConfirmation = true
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Add direct navigation link outside the list
+                    // This will handle navigation even if the chat isn't in the list yet
+                    if let targetChatId = selectedChatId, !filteredChats.contains(where: { $0.id == targetChatId }) {
+                        NavigationLink(
+                            destination: ChatDetailView(chatId: targetChatId),
+                            tag: targetChatId,
+                            selection: $activeNavigation
+                        ) {
+                            EmptyView() // Hidden link
+                        }
+                    }
+                } else if selectedChatType == .customer {
+                    CustomerChatTopicsView()
+                    
+                    // Add direct navigation link for customer chat view too
+                    if let targetChatId = selectedChatId {
+                        NavigationLink(
+                            destination: ChatDetailView(chatId: targetChatId),
+                            tag: targetChatId,
+                            selection: $activeNavigation
+                        ) {
+                            EmptyView() // Hidden link
+                        }
                     }
                 }
             }
@@ -99,7 +151,7 @@ struct ChatListView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    if authViewModel.userRole == .admin || authViewModel.userRole == .accountManager || authViewModel.userRole == .employee {
+                    if authViewModel.userRole == .admin || authViewModel.userRole == .accountManager {
                         HStack {
                             Button(action: {
                                 showingMultiChatCreation = true
@@ -134,6 +186,72 @@ struct ChatListView: View {
                         viewModel.fetchChats() // Refresh chats when user creation is dismissed
                     }
             }
+            .alert("Delete Chat", isPresented: $showDeleteConfirmation) {
+                Button("Cancel", role: .cancel) {
+                    chatToDelete = nil
+                }
+                Button("Delete", role: .destructive) {
+                    if let chatId = chatToDelete {
+                        viewModel.deleteChat(chatId: chatId)
+                        chatToDelete = nil
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to delete this chat? This action cannot be undone.")
+            }
+            .onChange(of: selectedChatId) { newChatId in
+                if let chatId = newChatId {
+                    print("ChatListView: selectedChatId changed to \(chatId)")
+                    
+                    // First check if this chat is already in our list
+                    let chatExists = filteredChats.contains(where: { $0.id == chatId })
+                    
+                    if !chatExists {
+                        // If chat isn't in the list, try to fetch it directly
+                        print("ChatListView: Chat \(chatId) not in filtered list, fetching directly")
+                        Task {
+                            do {
+                                // Check if chat exists in Firestore and user has access
+                                try await viewModel.fetchSingleChat(chatId: chatId)
+                                
+                                // Set the active navigation on the main thread
+                                DispatchQueue.main.async {
+                                    print("ChatListView: Setting activeNavigation to \(chatId) after fetching")
+                                    self.activeNavigation = chatId
+                                    
+                                    // Double-check navigation after a short delay
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        if self.activeNavigation != chatId {
+                                            print("ChatListView: Navigation failed, trying again")
+                                            self.activeNavigation = chatId
+                                        }
+                                    }
+                                }
+                            } catch {
+                                print("ChatListView: Error fetching chat \(chatId): \(error.localizedDescription)")
+                            }
+                        }
+                    } else {
+                        // Chat exists in list, navigate directly
+                        print("ChatListView: Chat \(chatId) found in list, navigating")
+                        self.activeNavigation = chatId
+                        
+                        // Double-check navigation after a short delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            if self.activeNavigation != chatId {
+                                print("ChatListView: Navigation failed, trying again")
+                                self.activeNavigation = chatId
+                            }
+                        }
+                    }
+                    
+                    // Reset selectedChatId after a delay
+                    // DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    //     selectedChatId = nil
+                    //     print("ChatListView: reset selectedChatId to nil")
+                    // }
+                }
+            }
             .onAppear {
                 viewModel.fetchChats()
                 Task {
@@ -141,6 +259,25 @@ struct ChatListView: View {
                     profileImageUrl = imageUrl
                     profileName = name
                 }
+                
+                // Set up listener for reset notification from ChatDetailView
+                NotificationCenter.default.addObserver(
+                    forName: Notification.Name("ResetChatNavigation"),
+                    object: nil,
+                    queue: .main
+                ) { _ in
+                    print("ChatListView: Received ResetChatNavigation notification")
+                    activeNavigation = nil
+                    selectedChatId = nil
+                }
+            }
+            .onDisappear {
+                // Remove the observer
+                NotificationCenter.default.removeObserver(
+                    self,
+                    name: Notification.Name("ResetChatNavigation"),
+                    object: nil
+                )
             }
             
             BackgroundLogo(opacity: 0.2)

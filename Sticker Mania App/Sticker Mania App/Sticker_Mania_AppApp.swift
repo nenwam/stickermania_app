@@ -123,11 +123,42 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
   func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, 
                               withCompletionHandler completionHandler: @escaping () -> Void) {
     let userInfo = response.notification.request.content.userInfo
+    LoggingService.shared.log("User tapped notification with userInfo: \(userInfo)")
     
-    if let chatId = userInfo["chatId"] as? String {
+    // Try to extract chatId from different possible locations in the payload
+    var chatId: String? = nil
+    
+    // Check in top-level userInfo
+    if let id = userInfo["chatId"] as? String {
+        chatId = id
+    }
+    
+    // Check in FCM data payload
+    else if let data = userInfo["data"] as? [String: Any], 
+            let id = data["chatId"] as? String {
+        chatId = id
+    }
+    
+    // Check in FCM apns-payload
+    else if let aps = userInfo["aps"] as? [String: Any], 
+            let data = aps["data"] as? [String: Any], 
+            let id = data["chatId"] as? String {
+        chatId = id
+    }
+    
+    if let chatId = chatId {
         LoggingService.shared.log("User tapped notification for chat: \(chatId)")
+        
         // Post notification to navigate to this chat
-        NotificationCenter.default.post(name: Notification.Name("OpenChat"), object: nil, userInfo: ["chatId": chatId])
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: Notification.Name("OpenChat"), 
+                object: nil, 
+                userInfo: ["chatId": chatId]
+            )
+        }
+    } else {
+        LoggingService.shared.log("No chatId found in notification: \(userInfo)", level: .warning)
     }
     
     completionHandler()

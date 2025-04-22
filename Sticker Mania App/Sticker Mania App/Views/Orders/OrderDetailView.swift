@@ -5,11 +5,10 @@ import QuickLook
 struct OrderDetailView: View {
     @StateObject private var viewModel: OrderDetailViewModel
     @State private var showEditView = false
-    @State private var selectedImage: OrderAttachment?
-    @State private var enlargedImage: IdentifiableURL?
-    @State private var selectedPDF: URL?
-    @State private var showingPDF = false
-    @State private var pdfData: Data? // Added to store PDF data
+    @State private var previewItemURL: URL?
+    @State private var loadingAttachmentId: String? = nil // State to track loading attachment
+    @State private var showDeleteConfirmation = false
+    @Environment(\.presentationMode) var presentationMode
 
     init(order: Order) {
         _viewModel = StateObject(wrappedValue: OrderDetailViewModel(order: order))
@@ -25,7 +24,7 @@ struct OrderDetailView: View {
                     orderDetailsView
                     orderItemsView
                     attachmentsView
-                    editButtonView
+                    orderActionsView
                 }
                 
                 errorView
@@ -36,7 +35,21 @@ struct OrderDetailView: View {
         .onAppear {
             viewModel.refreshOrderDetails()
         }
-        .quickLookPreview($selectedPDF, in: selectedPDF.map { [$0] } ?? [])
+        .quickLookPreview($previewItemURL, in: previewItemURL.map { [$0] } ?? [])
+        .alert("Delete Order", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {
+                // Do nothing, just dismiss the alert
+            }
+            Button("Delete", role: .destructive) {
+                viewModel.deleteOrder { success in
+                    if success {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
+        } message: {
+            Text("Are you sure you want to delete this order? This action cannot be undone.")
+        }
     }
     
     private var loadingView: some View {
@@ -45,13 +58,29 @@ struct OrderDetailView: View {
     }
     
     private var orderHeaderView: some View {
-        HStack {
-            Text("Order #\(viewModel.order.id)")
-                .font(.title2)
-                .bold()
-            Spacer()
-            Text(viewModel.order.status == .inProgress ? "In Progress" : viewModel.order.status.rawValue)
-                .font(.headline)
+        VStack {
+            HStack {
+                Spacer()
+                if viewModel.canDeleteOrder {
+                    Button(role: .destructive, action: {
+                        showDeleteConfirmation = true
+                    }) {
+                        HStack {
+                            Image(systemName: "trash")
+                            Text("Delete Order")
+                        }
+                    }
+                    .foregroundColor(.red)
+                }
+            }
+            HStack {
+                Text("Order #\(viewModel.order.id)")
+                    .font(.title2)
+                    .bold()
+                Spacer()
+                Text(viewModel.order.status == .inProgress ? "In Progress" : viewModel.order.status.rawValue.capitalized)
+                    .font(.headline)
+            }
         }
         .padding(.bottom)
     }
@@ -112,39 +141,57 @@ struct OrderDetailView: View {
                         attachmentRow(attachment)
                     }
                 }
-                .sheet(item: $enlargedImage) { identifiableURL in
-                    EnlargedImageView(imageUrl: identifiableURL.url)
-                }
             }
         }
     }
     
     private func attachmentRow(_ attachment: OrderAttachment) -> some View {
         Button(action: {
-            if attachment.type == .image {
-                if let url = URL(string: attachment.url) {
-                    enlargedImage = IdentifiableURL(url: url)
-                }
-            } else if attachment.type == .pdf {
-                if let url = URL(string: attachment.url) {
-                    Task {
-                        do {
-                            // Download PDF data
-                            let (data, _) = try await URLSession.shared.data(from: url)
-                            
-                            // Create temporary file
-                            let tempDir = FileManager.default.temporaryDirectory
-                            let tempFile = tempDir.appendingPathComponent(attachment.name)
-                            try data.write(to: tempFile)
-                            
-                            // Store data and show preview
-                            pdfData = data
-                            selectedPDF = tempFile
-                            showingPDF = true
-                        } catch {
-                            print("Error loading PDF: \(error)")
-                        }
+            guard loadingAttachmentId == nil else { // Prevent starting new download if one is in progress
+                print("OrderDetailView: Download already in progress for \(loadingAttachmentId ?? "?")")
+                return
+            }
+            guard let remoteURL = URL(string: attachment.url) else {
+                print("OrderDetailView: Invalid attachment URL: \(attachment.url)")
+                return
+            }
+
+            Task {
+                // Set loading state at the beginning
+                loadingAttachmentId = attachment.id
+                
+                // Ensure loading state is cleared when the task finishes
+                defer { loadingAttachmentId = nil }
+                
+                do {
+                    print("OrderDetailView: Downloading attachment: \(attachment.name) from \(remoteURL)")
+                    let (data, response) = try await URLSession.shared.data(from: remoteURL)
+                    
+                    if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
+                        print("OrderDetailView: Download failed with status code \(httpResponse.statusCode)")
+                        return
                     }
+                    print("OrderDetailView: Downloaded data size: \(data.count) bytes")
+                    
+                    let fileExtension: String
+                    switch attachment.type {
+                    case .image: fileExtension = "jpg"
+                    case .pdf: fileExtension = "pdf"
+                    default: fileExtension = ""
+                    }
+                    
+                    let tempDir = FileManager.default.temporaryDirectory
+                    let uniqueBaseName = UUID().uuidString
+                    let tempFileURL = tempDir.appendingPathComponent(uniqueBaseName).appendingPathExtension(fileExtension)
+                    
+                    print("OrderDetailView: Saving attachment to temporary file: \(tempFileURL.path)")
+                    try data.write(to: tempFileURL)
+                    
+                    previewItemURL = tempFileURL
+                    print("OrderDetailView: Set previewItemURL to: \(tempFileURL)")
+                    
+                } catch {
+                    print("OrderDetailView: Error processing attachment \(attachment.name): \(error)")
                 }
             }
         }) {
@@ -152,14 +199,22 @@ struct OrderDetailView: View {
                 Image(systemName: attachment.type == .image ? "photo" : "doc.fill")
                     .foregroundColor(attachment.type == .pdf ? .red : .primary)
                 Text(attachment.name)
+                
+                // Conditionally show ProgressView
+                if loadingAttachmentId == attachment.id {
+                    ProgressView()
+                        .padding(.leading, 4)
+                }
+                
                 Spacer()
-                Text(attachment.type.rawValue.capitalized)
+                Text(attachment.type.rawValue.capitalized == "Image" ? "Image" : "PDF")
             }
         }
+        .disabled(loadingAttachmentId != nil) // Optionally disable the button while any attachment is loading
     }
     
-    private var editButtonView: some View {
-        Group {
+    private var orderActionsView: some View {
+        VStack {
             if !viewModel.isCustomer {
                 Button("Edit Order Details") {
                     showEditView = true

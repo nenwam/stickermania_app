@@ -11,6 +11,7 @@ import FirebaseAuth
 struct CustomerHomeView: View {
     @State private var selectedTab = 0
     @State private var userRole: UserRole?
+    @State private var selectedChatId: String? = nil
     private let userService = UserService()
     
     var body: some View {
@@ -26,7 +27,7 @@ struct CustomerHomeView: View {
                     if userRole == .suspended {
                         SuspendedView()
                     } else {
-                        ChatListView()
+                        ChatListView(selectedChatId: $selectedChatId)
                     }
                 }
                 .tabItem {
@@ -59,34 +60,43 @@ struct CustomerHomeView: View {
                 }
                 .tag(2)
             }
-            .onChange(of: selectedTab) { _ in
-                if let email = Auth.auth().currentUser?.email {
-                    userService.fetchUserRole(email: email) { result in
-                        switch result {
-                        case .success(let role):
-                            DispatchQueue.main.async {
-                                userRole = role
-                            }
-                        case .failure(let error):
-                            print("Error fetching user role: \(error.localizedDescription)")
-                        }
+        }
+        .onAppear {
+            // Set up notification observer for chat messages
+            NotificationCenter.default.addObserver(
+                forName: Notification.Name("OpenChat"),
+                object: nil,
+                queue: .main
+            ) { notification in
+                if let chatId = notification.userInfo?["chatId"] as? String {
+                    print("CustomerHomeView: Received notification to open chat: \(chatId)")
+                    
+                    // First set the selectedChatId
+                    self.selectedChatId = chatId
+                    
+                    // Then switch to messages tab with a slight delay
+                    // This ensures the chat list view is ready to handle the navigation
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        self.selectedTab = 0
+                        print("CustomerHomeView: Switched to messages tab (tab 0) for chat: \(chatId)")
                     }
                 }
             }
-            .onAppear {
+            
+            // Get user role
+            Task {
                 if let email = Auth.auth().currentUser?.email {
-                    userService.fetchUserRole(email: email) { result in
-                        switch result {
-                        case .success(let role):
-                            DispatchQueue.main.async {
-                                userRole = role
-                            }
-                        case .failure(let error):
-                            print("Error fetching user role: \(error.localizedDescription)")
-                        }
+                    do {
+                        userRole = try await userService.getUserRole(email: email)
+                    } catch {
+                        print("Error fetching user role: \(error)")
                     }
                 }
             }
+        }
+        .onDisappear {
+            // Remove observer when view disappears
+            NotificationCenter.default.removeObserver(self, name: Notification.Name("OpenChat"), object: nil)
         }
     }
 }

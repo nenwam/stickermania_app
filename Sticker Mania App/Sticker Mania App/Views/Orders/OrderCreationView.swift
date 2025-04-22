@@ -22,16 +22,23 @@ struct OrderCreationView: View {
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var selectedAttachmentType: OrderAttachment.AttachmentType = .image
     
+    @GestureState private var scrollVelocity: CGFloat = 0
+
     var body: some View {
         ZStack {
             NavigationView {
                 Form {
                     customerSection
                     brandSection
+                        .disabled(viewModel.customerId.isEmpty)
                     orderItemsSection
+                        .disabled(viewModel.customerId.isEmpty)
                     attachmentsSection
+                        .disabled(viewModel.customerId.isEmpty)
                     taxSection
+                        .disabled(viewModel.customerId.isEmpty)
                     discountSection
+                        .disabled(viewModel.customerId.isEmpty)
                     summarySection
                 }
                 // .dismissKeyboardOnTapOutside()
@@ -72,23 +79,61 @@ struct OrderCreationView: View {
                 ) { result in
                     switch result {
                     case .success(let files):
-                        if let fileURL = files.first {
-                            if let data = try? Data(contentsOf: fileURL) {
-                                viewModel.uploadAttachment(data, type: .pdf, name: fileURL.lastPathComponent) { result in
+                        guard let fileURL = files.first else {
+                            print("OrderCreationView: No file URL received from picker.")
+                            return
+                        }
+                        
+                        print("OrderCreationView: PDF selected: \(fileURL.lastPathComponent)")
+                        print("OrderCreationView: Attempting to load data from URL: \(fileURL)")
+                        
+                        // Ensure the app has permission to access the file URL
+                        let accessing = fileURL.startAccessingSecurityScopedResource()
+                        defer { if accessing { fileURL.stopAccessingSecurityScopedResource() } }
+                        
+                        do {
+                            let data = try Data(contentsOf: fileURL)
+                            print("OrderCreationView: Successfully loaded PDF data: \(data.count) bytes")
+                            
+                            print("OrderCreationView: Calling viewModel.uploadAttachment")
+                            viewModel.uploadAttachment(data, type: .pdf, name: fileURL.lastPathComponent) { result in
+                                DispatchQueue.main.async { // Ensure UI updates on main thread
                                     switch result {
                                     case .success(let attachment):
+                                        print("OrderCreationView: PDF upload successful, adding attachment.")
                                         viewModel.addAttachment(attachment)
                                     case .failure(let error):
-                                        print("Error uploading PDF: \(error.localizedDescription)")
+                                        print("OrderCreationView: Error uploading PDF: \(error.localizedDescription)")
+                                        // Optionally show an error to the user
+                                        viewModel.errorMessage = "Failed to upload PDF: \(error.localizedDescription)"
+                                        viewModel.showError = true
                                     }
                                 }
                             }
+                        } catch {
+                            print("OrderCreationView: Error reading data from PDF URL \(fileURL): \(error.localizedDescription)")
+                            viewModel.errorMessage = "Failed to read PDF file."
+                            viewModel.showError = true
                         }
+                        
                     case .failure(let error):
-                        print("Error selecting PDF: \(error.localizedDescription)")
+                        print("OrderCreationView: Error selecting PDF: \(error.localizedDescription)")
+                        viewModel.errorMessage = "Failed to select PDF file."
+                        viewModel.showError = true
                     }
                 }
             }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 5, coordinateSpace: .local)
+                    .updating($scrollVelocity) { value, state, _ in
+                        let velocity = value.translation.height / max(1, value.time.timeIntervalSince(.now))
+                        state = velocity
+                        
+                        if velocity > 50 {
+                            UIApplication.shared.endEditing()
+                        }
+                    }
+            )
             
             BackgroundLogo(opacity: 0.2)
         }
@@ -233,7 +278,7 @@ struct OrderCreationView: View {
     }
     
     private var leadingToolbarItems: some View {
-        Button("Cancel") {
+        Button("Clear") {
             selectedCustomers = []
             viewModel.customerId = ""
             viewModel.brandId = ""
@@ -250,6 +295,8 @@ struct OrderCreationView: View {
     private var trailingToolbarItems: some View {
         Button("Create") {
             if viewModel.createOrder() != nil {
+                // Clear all inputs after successful order creation
+                
                 showSuccessAlert = true
             }
         }

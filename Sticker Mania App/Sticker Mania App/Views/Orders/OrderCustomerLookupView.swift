@@ -1,5 +1,5 @@
 import SwiftUI
-
+import FirebaseAuth
 struct OrderCustomerLookupView: View {
     enum SearchType {
         case orders, users

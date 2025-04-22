@@ -6,13 +6,23 @@
 //
 
 import SwiftUI
+import FirebaseAuth // Import FirebaseAuth to check current user ID
 
 struct UserDetailView: View {
     let userId: String
     @StateObject private var viewModel = UserDetailViewModel()
     @State private var showingBrandEditor = false
     @State private var showingRoleEditor = false
+    @State private var showingDeleteConfirmation = false
+    @State private var showDeletionErrorAlert = false
+    @State private var deletionError: String?
+    @Environment(\.presentationMode) var presentationMode // To dismiss the view
     
+    // Check if the current user is an admin and not viewing their own profile
+    private var canDeleteUser: Bool {
+        viewModel.currentUser?.role == .admin && viewModel.currentUser?.id != userId
+    }
+
     var body: some View {
         ScrollView {
             if viewModel.isLoading {
@@ -57,7 +67,7 @@ struct UserDetailView: View {
                             .foregroundColor(.secondary)
                         
                         HStack {
-                            Text("Role: \(user.role.rawValue.capitalized)")
+                            Text("Role: \(user.role.rawValue.capitalized == "Accountmanager" ? "Account Manager" : user.role.rawValue.capitalized)")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             
@@ -178,6 +188,42 @@ struct UserDetailView: View {
                     }
                     
                     Spacer()
+
+                    // Delete User Button (only for admins, not deleting themselves)
+                    // if canDeleteUser {
+                    //     Button(role: .destructive) {
+                    //         showingDeleteConfirmation = true
+                    //     } label: {
+                    //         Label("Delete User", systemImage: "trash")
+                    //             .frame(maxWidth: .infinity)
+                    //     }
+                    //     .buttonStyle(.borderedProminent)
+                    //     .tint(.red)
+                    //     .padding()
+                    //     .alert("Confirm Deletion", isPresented: $showingDeleteConfirmation) {
+                    //         Button("Cancel", role: .cancel) { }
+                    //         Button("Delete", role: .destructive) {
+                    //             viewModel.deleteUser { success, error in
+                    //                 if success {
+                    //                     // Deletion successful (Firestore part), dismiss the view
+                    //                     presentationMode.wrappedValue.dismiss()
+                    //                     // You might want to show a success toast/message on the previous screen
+                    //                 } else {
+                    //                     // Show error alert
+                    //                     deletionError = error ?? "An unknown error occurred during deletion."
+                    //                     showDeletionErrorAlert = true
+                    //                 }
+                    //             }
+                    //         }
+                    //     } message: {
+                    //         Text("Are you sure you want to delete this user? This action cannot be undone. The user will be removed from the database, but authentication deletion requires backend setup.")
+                    //     }
+                    //     .alert("Deletion Failed", isPresented: $showDeletionErrorAlert) {
+                    //         Button("OK", role: .cancel) { }
+                    //     } message: {
+                    //         Text(deletionError ?? "An unknown error occurred.")
+                    //     }
+                    // }
                 }
             } else if let error = viewModel.error {
                 Text(error)

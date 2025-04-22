@@ -7,10 +7,70 @@ class ChatListViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: Error?
     @Published var participantNames: [String: String] = [:] // Cache for participant names
+    @Published var canDeleteChats = false // Flag to indicate if user can delete chats
     
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
     private let logger = LoggingService.shared
+    
+    init() {
+        checkUserPermissions() // Check if user can delete chats
+    }
+    
+    // Check if the current user is admin or account manager
+    private func checkUserPermissions() {
+        guard let currentUserEmail = Auth.auth().currentUser?.email else {
+            logger.log("No current user found when checking permissions", level: .error)
+            return
+        }
+        
+        logger.log("Checking delete permissions for user: \(currentUserEmail)")
+        
+        db.collection("users").document(currentUserEmail).getDocument { [weak self] document, error in
+            guard let self = self, let document = document, document.exists else {
+                self?.logger.log("User document not found when checking permissions", level: .error)
+                return
+            }
+            
+            if let roleString = document.data()?["role"] as? String {
+                // Check if user is admin or account manager
+                if roleString == "admin" || roleString == "accountManager" {
+                    DispatchQueue.main.async {
+                        self.canDeleteChats = true
+                        self.logger.log("User has delete chat permissions: \(roleString)")
+                    }
+                } else {
+                    self.logger.log("User does not have delete chat permissions: \(roleString)")
+                }
+            }
+        }
+    }
+    
+    // Function to delete a chat
+    func deleteChat(chatId: String) {
+        logger.log("Attempting to delete chat with ID: \(chatId)")
+        isLoading = true
+        
+        db.collection("chats").document(chatId).delete { [weak self] error in
+            guard let self = self else { return }
+            self.isLoading = false
+            
+            if let error = error {
+                self.logger.log("Error deleting chat: \(error.localizedDescription)", level: .error)
+                self.error = error
+                return
+            }
+            
+            // Remove the chat from the local array if it exists
+            if let index = self.chats.firstIndex(where: { $0.id == chatId }) {
+                DispatchQueue.main.async {
+                    self.chats.remove(at: index)
+                }
+            }
+            
+            self.logger.log("Successfully deleted chat with ID: \(chatId)")
+        }
+    }
     
     func fetchChats() {
         isLoading = true
@@ -64,6 +124,7 @@ class ChatListViewModel: ObservableObject {
                     senderId: senderId,
                     text: text,
                     mediaUrl: nil,
+                    thumbnailUrl: nil,
                     mediaType: nil,
                     timestamp: timestamp
                 )
@@ -82,6 +143,86 @@ class ChatListViewModel: ObservableObject {
             
             // Update app badge count after loading chats
             self.updateAppBadge()
+        }
+    }
+    
+    // Fetch a single chat by ID and verify the current user has access to it
+    func fetchSingleChat(chatId: String) async throws {
+        logger.log("Directly fetching single chat with ID: \(chatId)")
+        
+        guard let currentUserEmail = Auth.auth().currentUser?.email else { 
+            logger.log("No user email found for fetching chat", level: .error)
+            throw NSError(domain: "Auth", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not logged in"])
+        }
+        
+        do {
+            let document = try await db.collection("chats").document(chatId).getDocument()
+            
+            guard document.exists else {
+                logger.log("Chat \(chatId) does not exist", level: .error)
+                throw NSError(domain: "Firestore", code: 404, userInfo: [NSLocalizedDescriptionKey: "Chat not found"])
+            }
+            
+            guard let data = document.data() else {
+                logger.log("Chat \(chatId) exists but has no data", level: .error)
+                throw NSError(domain: "Firestore", code: 500, userInfo: [NSLocalizedDescriptionKey: "Chat data missing"])
+            }
+            
+            // Verify user has access to this chat
+            guard let participants = data["participants"] as? [String], 
+                  participants.contains(currentUserEmail) else {
+                logger.log("User \(currentUserEmail) does not have access to chat \(chatId)", level: .error)
+                throw NSError(domain: "Auth", code: 403, userInfo: [NSLocalizedDescriptionKey: "Access denied"])
+            }
+            
+            // Extract the required fields
+            guard let lastMessageData = data["lastMessage"] as? [String: Any],
+                  let messageId = lastMessageData["id"] as? String,
+                  let senderId = lastMessageData["senderId"] as? String,
+                  let text = lastMessageData["text"] as? String,
+                  let timestamp = (lastMessageData["timestamp"] as? Timestamp)?.dateValue(),
+                  let typeString = data["type"] as? String,
+                  let type = ChatType(rawValue: typeString),
+                  let unreadStatus = data["unreadStatus"] as? [String: Bool] else {
+                logger.log("Failed to parse chat document: \(document.documentID)", level: .warning)
+                throw NSError(domain: "Parsing", code: 422, userInfo: [NSLocalizedDescriptionKey: "Invalid chat data format"])
+            }
+            
+            let lastMessage = ChatMessage(
+                id: messageId,
+                senderId: senderId,
+                text: text,
+                mediaUrl: nil,
+                thumbnailUrl: nil,
+                mediaType: nil,
+                timestamp: timestamp
+            )
+            
+            let title = data["title"] as? String
+            
+            let chat = Chat(
+                id: document.documentID,
+                participants: participants,
+                lastMessage: lastMessage,
+                type: type,
+                unreadStatus: unreadStatus,
+                title: title
+            )
+            
+            // Add this chat to our list if it's not already there
+            DispatchQueue.main.async {
+                if !self.chats.contains(where: { $0.id == chatId }) {
+                    self.chats.append(chat)
+                    self.logger.log("Added chat \(chatId) to the chat list")
+                }
+            }
+            
+            logger.log("Successfully fetched and processed chat: \(chatId)")
+            return
+            
+        } catch {
+            logger.log("Error fetching chat \(chatId): \(error.localizedDescription)", level: .error)
+            throw error
         }
     }
     

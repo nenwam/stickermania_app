@@ -39,6 +39,15 @@ struct MessageBubble: View {
                     Text(senderName)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    Group {
+                        if Calendar.current.isDateInToday(message.timestamp) {
+                            Text(message.timestamp, style: .time)
+                        } else {
+                            Text(message.timestamp, style: .date) + Text(" ") + Text(message.timestamp, style: .time)
+                        }
+                    }
+                    .font(.system(size: 8))
+                    .foregroundColor(.secondary)
                     Text(message.text ?? "")
                         .padding()
                         .background(Color.blue)
@@ -50,6 +59,15 @@ struct MessageBubble: View {
                     Text(senderName)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    Group {
+                        if Calendar.current.isDateInToday(message.timestamp) {
+                            Text(message.timestamp, style: .time)
+                        } else {
+                            Text(message.timestamp, style: .date) + Text(" ") + Text(message.timestamp, style: .time)
+                        }
+                    }
+                    .font(.system(size: 8))
+                    .foregroundColor(.secondary)
                     Text(message.text ?? "")
                         .padding()
                         .background(Color.gray.opacity(0.2))

@@ -1,4 +1,4 @@
-struct User: Decodable, Identifiable {
+struct User: Decodable, Identifiable, Hashable {
     let id: String
     var email: String
     var name: String

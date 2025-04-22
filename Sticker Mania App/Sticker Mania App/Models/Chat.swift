@@ -1,7 +1,7 @@
 import Foundation
 import FirebaseFirestore
 
-struct Chat: Identifiable {
+struct Chat: Identifiable, Decodable {
     let id: String
     let participants: [String]
     let lastMessage: ChatMessage
@@ -38,6 +38,7 @@ struct Chat: Identifiable {
             senderId: senderId,
             text: text,
             mediaUrl: nil,
+            thumbnailUrl: nil,
             mediaType: nil,
             timestamp: timestamp
         )

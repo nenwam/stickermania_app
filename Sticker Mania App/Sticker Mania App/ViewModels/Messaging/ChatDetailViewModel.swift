@@ -2,6 +2,7 @@ import SwiftUI
 import FirebaseFirestore
 import FirebaseAuth
 import FirebaseStorage
+import UIKit // Import UIKit for image resizing
 
 class ChatDetailViewModel: ObservableObject {
     @Published var messages: [ChatMessage] = []
@@ -17,6 +18,28 @@ class ChatDetailViewModel: ObservableObject {
     private let db = Firestore.firestore()
     private let logger = LoggingService.shared
     
+    // Helper function to resize image data
+    private func createThumbnail(from imageData: Data, targetSize: CGSize = CGSize(width: 200, height: 200)) -> Data? {
+        guard let image = UIImage(data: imageData) else { return nil }
+        
+        let size = image.size
+        let aspectRatio = size.width / size.height
+        var thumbnailSize: CGSize
+        
+        if aspectRatio > 1 { // Landscape
+            thumbnailSize = CGSize(width: targetSize.width, height: targetSize.width / aspectRatio)
+        } else { // Portrait or Square
+            thumbnailSize = CGSize(width: targetSize.height * aspectRatio, height: targetSize.height)
+        }
+        
+        let renderer = UIGraphicsImageRenderer(size: thumbnailSize)
+        let thumbnailImage = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: thumbnailSize))
+        }
+        
+        return thumbnailImage.jpegData(compressionQuality: 0.7) // Adjust quality as needed
+    }
+
     func startListening(chatId: String) {
         logger.log("Starting to listen for messages in chat: \(chatId)")
         let query = db.collection("chats")
@@ -212,7 +235,8 @@ class ChatDetailViewModel: ObservableObject {
             senderId: email,
             text: text,
             mediaUrl: nil,
-            mediaType: nil,
+            thumbnailUrl: nil,
+            mediaType: .text,
             timestamp: Date()
         )
         
@@ -324,64 +348,61 @@ class ChatDetailViewModel: ObservableObject {
     }
 
     func sendImage(_ imageData: Data, chatId: String) async {
-        guard !imageData.isEmpty else {
-            logger.log("Error: Image data is empty.", level: .error)
+        guard !imageData.isEmpty, let email = Auth.auth().currentUser?.email else {
+            logger.log("Error: Image data empty or user not signed in.", level: .error)
             return
         }
         
-        guard let email = Auth.auth().currentUser?.email else {
-            logger.log("Error: No user is signed in.", level: .error)
-            return
+        // Generate thumbnail
+        guard let thumbnailData = createThumbnail(from: imageData) else {
+            logger.log("Error: Failed to create image thumbnail.", level: .error)
+            // Decide if you want to proceed without a thumbnail or return
+            return // Or proceed to upload only the original image
         }
         
-        logger.log("Sending image to chat: \(chatId), data size: \(imageData.count) bytes")
+        logger.log("Sending image to chat: \(chatId), original size: \(imageData.count), thumbnail size: \(thumbnailData.count)")
         
         let storageRef = Storage.storage().reference()
         let imageId = UUID().uuidString
         let imageRef = storageRef.child("chatImages/\(imageId).jpg")
+        let thumbnailRef = storageRef.child("chatImages/\(imageId)_thumb.jpg") // Separate path/name for thumbnail
         
         do {
-            // Upload image data to Firebase Storage
-            logger.log("Uploading image to storage: \(imageId)")
-            let metadata = try await imageRef.putDataAsync(imageData, metadata: nil)
-            
-            // Ensure the upload was successful
-            guard metadata != nil else {
-                logger.log("Error: Upload metadata is nil.", level: .error)
-                return
-            }
-            
-            // Get the download URL
+            // 1. Upload Original Image
+            logger.log("Uploading original image to storage: \(imageId)")
+            _ = try await imageRef.putDataAsync(imageData, metadata: nil)
             let downloadURL = try await imageRef.downloadURL()
-            logger.log("Image upload successful, URL: \(downloadURL.absoluteString)")
+            logger.log("Original image upload successful, URL: \(downloadURL.absoluteString)")
             
-            // Create a ChatMessage with the image URL
+            // 2. Upload Thumbnail Image
+            logger.log("Uploading thumbnail image to storage: \(imageId)_thumb")
+            _ = try await thumbnailRef.putDataAsync(thumbnailData, metadata: nil)
+            let thumbnailDownloadURL = try await thumbnailRef.downloadURL()
+            logger.log("Thumbnail image upload successful, URL: \(thumbnailDownloadURL.absoluteString)")
+            
+            // 3. Create ChatMessage with both URLs
             let message = ChatMessage(
                 id: UUID().uuidString,
                 senderId: email,
                 text: nil,
                 mediaUrl: downloadURL.absoluteString,
+                thumbnailUrl: thumbnailDownloadURL.absoluteString, // Save thumbnail URL
                 mediaType: .image,
                 timestamp: Date()
             )
             
-            // Add the message to the messages subcollection
+            // 4. Save Message to Firestore
             try await db.collection("chats")
                 .document(chatId)
                 .collection("messages")
                 .document(message.id)
                 .setData(from: message)
-            
-            // Update the chat document with the new unreadStatus and lastMessage
+                
+            // 5. Update Last Message & Unread Status
             let chatDocument = try await db.collection("chats").document(chatId).getDocument()
-            
             if var chatData = chatDocument.data() {
                 var unreadStatus = chatData["unreadStatus"] as? [String: Bool] ?? [:]
-                
-                // Update unreadStatus for all participants except the sender
-                for participant in unreadStatus.keys {
-                    unreadStatus[participant] = (participant != email)
-                }
+                for participant in unreadStatus.keys { unreadStatus[participant] = (participant != email) }
                 
                 try await db.collection("chats")
                     .document(chatId)
@@ -389,8 +410,9 @@ class ChatDetailViewModel: ObservableObject {
                         "lastMessage": [
                             "id": message.id,
                             "senderId": message.senderId,
-                            "text": "Image",
+                            "text": "Image", // Keep preview simple
                             "mediaUrl": message.mediaUrl ?? "",
+                            "thumbnailUrl": message.thumbnailUrl ?? "", // Include thumbnail URL in last message if needed
                             "mediaType": message.mediaType?.rawValue ?? "",
                             "timestamp": Timestamp(date: message.timestamp)
                         ],
@@ -398,16 +420,16 @@ class ChatDetailViewModel: ObservableObject {
                         "unreadStatus": unreadStatus
                     ])
                 
-                // Send push notifications to other participants
+                // 6. Send Push Notifications
                 let senderName = await getUserDisplayName(email: email)
                 await sendPushNotificationsToParticipants(
                     chatData["participants"] as? [String] ?? [],
                     senderName: senderName,
-                    messagePreview: "Image",
+                    messagePreview: "Image", // Keep notification simple
                     chatId: chatId
                 )
                 
-                logger.log("Successfully sent image message")
+                logger.log("Successfully sent image message with thumbnail")
             }
         } catch {
             logger.log("Error sending image: \(error.localizedDescription)", level: .error)
@@ -452,6 +474,7 @@ class ChatDetailViewModel: ObservableObject {
                 senderId: email,
                 text: nil,
                 mediaUrl: downloadURL.absoluteString,
+                thumbnailUrl: nil,
                 mediaType: .video,
                 timestamp: Date()
             )
@@ -526,14 +549,16 @@ class ChatDetailViewModel: ObservableObject {
             // Upload PDF data to Firebase Storage
             logger.log("Uploading PDF to storage: \(pdfId)")
             let metadata = try await pdfRef.putDataAsync(pdfData, metadata: nil)
+            print("PDF putDataAsync completed. Metadata: \(metadata != nil ? "Received" : "Nil")")
             
             // Ensure the upload was successful
             guard metadata != nil else {
-                logger.log("Error: Upload metadata is nil.", level: .error)
+                logger.log("Error: Upload metadata is nil after putDataAsync.", level: .error)
                 return
             }
             
             // Get the download URL
+            logger.log("Attempting to get download URL for PDF: \(pdfId)")
             let downloadURL = try await pdfRef.downloadURL()
             logger.log("PDF upload successful, URL: \(downloadURL.absoluteString)")
             
@@ -543,6 +568,7 @@ class ChatDetailViewModel: ObservableObject {
                 senderId: email,
                 text: nil,
                 mediaUrl: downloadURL.absoluteString,
+                thumbnailUrl: nil,
                 mediaType: .pdf,
                 timestamp: Date()
             )

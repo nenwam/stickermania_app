@@ -30,10 +30,16 @@ struct OrderEditView: View {
                             HStack {
                                 TextField("Quantity", value: $item.quantity, formatter: NumberFormatter())
                                     .keyboardType(.numberPad)
-                                    // .addDoneButtonToKeyboard()
-                                TextField("Price", value: $item.price, formatter: NumberFormatter())
+                                    
+                                let currencyFormatter: NumberFormatter = {
+                                    let formatter = NumberFormatter()
+                                    formatter.numberStyle = .currency
+                                    formatter.currencySymbol = "$"
+                                    return formatter
+                                }()
+                                TextField("Price", value: $item.price, formatter: currencyFormatter)
                                     .keyboardType(.decimalPad)
-                                    .addDoneButtonToKeyboard()
+
                                 Picker("", selection: $item.productType) {
                                     ForEach(ProductType.allCases, id: \.self) { type in
                                         Text(type.rawValue.capitalized).tag(type)
@@ -46,10 +52,12 @@ struct OrderEditView: View {
                         viewModel.items.remove(atOffsets: indexSet)
                     }
                     
+                    
                     Button("Add Item") {
                         // Logic to add a new item
                     }
                 }
+                
                 
                 Section {
                     HStack {
@@ -61,6 +69,7 @@ struct OrderEditView: View {
                 }
             }
             .navigationTitle("Edit Order")
+            .addDoneButtonToKeyboard()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {

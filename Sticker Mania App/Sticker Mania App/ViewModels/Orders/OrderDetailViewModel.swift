@@ -9,12 +9,66 @@ class OrderDetailViewModel: ObservableObject {
     @Published var errorMessage: String?
     private let orderDetailController = OrderDetailController()
     @Published var isCustomer: Bool = false
+    @Published var canDeleteOrder: Bool = false
     private let logger = LoggingService.shared
     
     init(order: Order) {
         self.order = order
         logger.log("Initialized OrderDetailViewModel for order: \(order.id)")
         checkIfCustomer()
+        checkUserPermissions()
+    }
+    
+    private func checkUserPermissions() {
+        guard let currentUser = Auth.auth().currentUser, 
+              let email = currentUser.email else {
+            logger.log("No current user found when checking permissions", level: .error)
+            return
+        }
+        
+        logger.log("Checking delete permissions for user: \(email)")
+        
+        db.collection("users").document(email).getDocument { [weak self] document, error in
+            guard let self = self, let document = document, document.exists else {
+                self?.logger.log("User document not found when checking permissions", level: .error)
+                return
+            }
+            
+            if let roleString = document.data()?["role"] as? String {
+                if roleString == "admin" || roleString == "accountManager" {
+                    DispatchQueue.main.async {
+                        self.canDeleteOrder = true
+                        self.logger.log("User has delete order permissions: \(roleString)")
+                    }
+                } else {
+                    self.logger.log("User does not have delete order permissions: \(roleString)")
+                }
+            }
+        }
+    }
+    
+    func deleteOrder(completion: @escaping (Bool) -> Void) {
+        logger.log("Attempting to delete order with ID: \(order.id)")
+        isLoading = true
+        errorMessage = nil
+        
+        db.collection("orders").document(order.id).delete { [weak self] error in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                self.isLoading = false
+                
+                if let error = error {
+                    self.logger.log("Error deleting order: \(error.localizedDescription)", level: .error)
+                    self.errorMessage = "Failed to delete order: \(error.localizedDescription)"
+                    completion(false)
+                    return
+                }
+                
+                self.logger.log("Successfully deleted order with ID: \(self.order.id)")
+                completion(true)
+            }
+        }
     }
     
     private func checkIfCustomer() {

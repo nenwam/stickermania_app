@@ -46,6 +46,7 @@ struct OrderSearchView: View {
                                 .font(.headline)
                                 .rotationEffect(Angle(degrees: isRefreshing ? 360 : 0))
                                 .animation(isRefreshing ? Animation.linear(duration: 1.0).repeatCount(1, autoreverses: false) : .default, value: isRefreshing)
+                                .padding(.trailing, 5)
                         }
                         .disabled(viewModel.isLoading || isRefreshing)
                     }

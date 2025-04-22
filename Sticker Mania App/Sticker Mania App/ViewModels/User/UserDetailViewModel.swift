@@ -25,7 +25,7 @@ class UserDetailViewModel: ObservableObject {
     }
     
     private func fetchCurrentUser() {
-        guard let currentUserId = Auth.auth().currentUser?.uid else { 
+        guard let currentUserId = Auth.auth().currentUser?.email else { 
             logger.log("No authenticated user found", level: .warning)
             return 
         }
@@ -260,4 +260,68 @@ class UserDetailViewModel: ObservableObject {
             }
         }
     }
+
+    func deleteUser(completion: @escaping (Bool, String?) -> Void) {
+        guard let userIdToDelete = user?.id else {
+            logger.log("Cannot delete user: No user ID available", level: .error)
+            completion(false, "User ID not found.")
+            return
+        }
+
+        guard let currentUserId = Auth.auth().currentUser?.uid, currentUserId != userIdToDelete else {
+            logger.log("Attempted to delete self. This should be handled by account deletion flow.", level: .warning)
+            completion(false, "Cannot delete your own account from here.")
+            return
+        }
+
+        // Check if the current user is an admin - Ideally, this check should also happen server-side
+        // For now, we rely on the client-side check which might not be secure.
+        guard currentUser?.role == .admin else {
+            logger.log("Unauthorized attempt to delete user \(userIdToDelete) by user \(currentUserId)", level: .warning)
+            completion(false, "You do not have permission to delete users.")
+            return
+        }
+
+        logger.log("Attempting to delete user \(userIdToDelete)")
+        isLoading = true
+        error = nil
+
+        let userRef = db.collection("users").document(userIdToDelete)
+
+        // 1. Delete Firestore Document
+        userRef.delete { [weak self] err in
+            DispatchQueue.main.async {
+                if let err = err {
+                    self?.logger.log("Error deleting Firestore user document \(userIdToDelete): \(err.localizedDescription)", level: .error)
+                    self?.isLoading = false
+                    self?.error = "Failed to delete user data: \(err.localizedDescription)"
+                    completion(false, self?.error)
+                    return
+                }
+
+                self?.logger.log("Successfully deleted Firestore user document \(userIdToDelete)")
+
+                // 2. Trigger Backend for Auth Deletion (Placeholder)
+                // !! IMPORTANT !!
+                // Deleting from Firebase Authentication MUST be done server-side (e.g., Cloud Function)
+                // Call your backend function here to delete the user from Firebase Auth using the Admin SDK.
+                // Example: self?.triggerCloudFunctionToDeleteAuthUser(userId: userIdToDelete) { success, authError in ... }
+                // For now, we'll assume success on the client side after Firestore deletion.
+                // Proper implementation requires backend interaction.
+
+                self?.logger.log("Firestore document deleted. Auth deletion must be handled by backend for user \(userIdToDelete).")
+                self?.isLoading = false
+                self?.user = nil // Clear the user data locally
+                completion(true, nil)
+            }
+        }
+    }
+    
+    // Placeholder for triggering a backend function
+    // private func triggerCloudFunctionToDeleteAuthUser(userId: String, completion: @escaping (Bool, String?) -> Void) {
+    //    // Implementation to call your HTTPS Cloud Function would go here
+    //    logger.log("Placeholder: Triggering backend function to delete Firebase Auth user \(userId)", level: .info)
+    //    // Simulate backend call success for now
+    //    completion(true, nil)
+    // }
 }

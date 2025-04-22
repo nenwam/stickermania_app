@@ -80,7 +80,17 @@ class OrderCreationViewModel: ObservableObject {
     }
     
     func uploadAttachment(_ data: Data, type: OrderAttachment.AttachmentType, name: String, completion: @escaping (Result<OrderAttachment, Error>) -> Void) {
-        logger.log("Uploading attachment: \(name), type: \(type.rawValue), size: \(data.count) bytes")
+        logger.log("OrderCreationViewModel: Uploading attachment: \(name), type: \(type.rawValue), size: \(data.count) bytes")
+        
+        // Add check for customerId
+        guard !customerId.isEmpty else {
+            let error = NSError(domain: "OrderCreationError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Customer ID is missing. Cannot determine upload path."])
+            logger.log("OrderCreationViewModel: Attachment upload failed - Customer ID is empty", level: .error)
+            completion(.failure(error))
+            return
+        }
+        logger.log("OrderCreationViewModel: Using customerId: \(customerId) for upload path")
+        
         let storageRef = storage.reference()
         let fileName = "\(UUID().uuidString)_\(name)"
         let fileExtension = type == .image ? "jpg" : "pdf"
@@ -90,7 +100,7 @@ class OrderCreationViewModel: ObservableObject {
         let metadata = StorageMetadata()
         metadata.contentType = type == .image ? "image/jpeg" : "application/pdf"
         
-        logger.log("Starting upload to path: \(path)")
+        logger.log("OrderCreationViewModel: Starting upload to path: \(path)")
         fileRef.putData(data, metadata: metadata) { [weak self] metadata, error in
             if let error = error {
                 self?.logger.log("Attachment upload failed: \(error.localizedDescription)", level: .error)

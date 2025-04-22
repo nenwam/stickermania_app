@@ -13,49 +13,54 @@ struct ChatMultiCreationView: View {
     @State private var fileSetupSearchText = ""
     @Environment(\.dismiss) private var dismiss
     
-    var filteredCustomers: [String] {
-        // Get available customers based on user role
+    var filteredCustomers: [User] {
         let availableCustomers = viewModel.currentUserRole == .accountManager ? 
-            viewModel.customers.filter { viewModel.currentUserCustomerIds.contains($0) } :
+            viewModel.customers.filter { viewModel.currentUserCustomerIds.contains($0.email) } :
             viewModel.customers
-        print("Current user role: ", viewModel.currentUserRole)
+            
+        let selectedUsers = availableCustomers.filter { selectedCustomers.contains($0.email) }
+        
         if customerSearchText.isEmpty {
-            return Array(selectedCustomers).sorted()
+            return selectedUsers.sorted { $0.name < $1.name }
         }
-        let filtered = availableCustomers.filter { customer in
-            customer.localizedCaseInsensitiveContains(customerSearchText)
+        
+        let filtered = availableCustomers.filter { user in
+            user.name.localizedCaseInsensitiveContains(customerSearchText)
         }
-        return Array(Set(filtered + Array(selectedCustomers))).sorted()
+        return Array(Set(filtered + selectedUsers)).sorted { $0.name < $1.name }
     }
     
-    var filteredPrintTeam: [String] {
+    var filteredPrintTeam: [User] {
+        let selectedUsers = viewModel.nonCustomerUsers.filter { printTeamParticipants.contains($0.email) }
         if printTeamSearchText.isEmpty {
-            return Array(printTeamParticipants).sorted()
+            return selectedUsers.sorted { $0.name < $1.name }
         }
-        let filtered = viewModel.nonCustomerUsers.filter { member in
-            member.localizedCaseInsensitiveContains(printTeamSearchText)
+        let filtered = viewModel.nonCustomerUsers.filter { user in
+            user.name.localizedCaseInsensitiveContains(printTeamSearchText)
         }
-        return Array(Set(filtered + Array(printTeamParticipants))).sorted()
+        return Array(Set(filtered + selectedUsers)).sorted { $0.name < $1.name }
     }
     
-    var filteredDesignTeam: [String] {
+    var filteredDesignTeam: [User] {
+        let selectedUsers = viewModel.nonCustomerUsers.filter { designTeamParticipants.contains($0.email) }
         if designTeamSearchText.isEmpty {
-            return Array(designTeamParticipants).sorted()
+            return selectedUsers.sorted { $0.name < $1.name }
         }
-        let filtered = viewModel.nonCustomerUsers.filter { member in
-            member.localizedCaseInsensitiveContains(designTeamSearchText)
+        let filtered = viewModel.nonCustomerUsers.filter { user in
+            user.name.localizedCaseInsensitiveContains(designTeamSearchText)
         }
-        return Array(Set(filtered + Array(designTeamParticipants))).sorted()
+        return Array(Set(filtered + selectedUsers)).sorted { $0.name < $1.name }
     }
     
-    var filteredFileSetupTeam: [String] {
+    var filteredFileSetupTeam: [User] {
+        let selectedUsers = viewModel.nonCustomerUsers.filter { fileSetupParticipants.contains($0.email) }
         if fileSetupSearchText.isEmpty {
-            return Array(fileSetupParticipants).sorted()
+            return selectedUsers.sorted { $0.name < $1.name }
         }
-        let filtered = viewModel.nonCustomerUsers.filter { member in
-            member.localizedCaseInsensitiveContains(fileSetupSearchText)
+        let filtered = viewModel.nonCustomerUsers.filter { user in
+            user.name.localizedCaseInsensitiveContains(fileSetupSearchText)
         }
-        return Array(Set(filtered + Array(fileSetupParticipants))).sorted()
+        return Array(Set(filtered + selectedUsers)).sorted { $0.name < $1.name }
     }
     
     var body: some View {
@@ -70,61 +75,58 @@ struct ChatMultiCreationView: View {
                                 VStack(alignment: .leading) {
                                     Text("Select Customers")
                                         .font(.headline)
-                                    TextField("Search customers...", text: $customerSearchText)
+                                    TextField("Search customers by name...", text: $customerSearchText)
                                         .textFieldStyle(RoundedBorderTextFieldStyle())
                                         .padding(.bottom, 8)
-                                    SearchableSection(
+                                    SearchableUserSection(
                                         title: "",
                                         items: filteredCustomers,
-                                        selectedItems: $selectedCustomers,
+                                        selectedEmails: $selectedCustomers,
                                         searchText: $customerSearchText
                                     )
                                 }
 
                                 Divider()
                                     .padding(.vertical, 8)
-                                    .colorInvert()
                                 
                                 VStack(alignment: .leading) {
                                     Text("Print Team Members")
                                         .font(.headline)
-                                    TextField("Search print team...", text: $printTeamSearchText)
+                                    TextField("Search print team by name...", text: $printTeamSearchText)
                                         .textFieldStyle(RoundedBorderTextFieldStyle())
                                         .padding(.bottom, 8)
-                                    SearchableSection(
+                                    SearchableUserSection(
                                         title: "",
                                         items: filteredPrintTeam,
-                                        selectedItems: $printTeamParticipants,
+                                        selectedEmails: $printTeamParticipants,
                                         searchText: $printTeamSearchText
                                     )
                                 }
 
                                 Divider()
                                     .padding(.vertical, 8)
-                                    .colorInvert()
                                 
                                 VStack(alignment: .leading) {
                                     Text("Design Team Members")
                                         .font(.headline)
-                                    TextField("Search design team...", text: $designTeamSearchText)
+                                    TextField("Search design team by name...", text: $designTeamSearchText)
                                         .textFieldStyle(RoundedBorderTextFieldStyle())
                                         .padding(.bottom, 8)
-                                    SearchableSection(
+                                    SearchableUserSection(
                                         title: "",
                                         items: filteredDesignTeam,
-                                        selectedItems: $designTeamParticipants,
+                                        selectedEmails: $designTeamParticipants,
                                         searchText: $designTeamSearchText
                                     )
                                 }
 
                                 Divider()
                                     .padding(.vertical, 8)
-                                    .colorInvert()
                                 
                                 VStack(alignment: .leading) {
                                     Text("File Setup Team Members")
                                         .font(.headline)
-                                    TextField("Search file setup team...", text: $fileSetupSearchText)
+                                    TextField("Search file setup by name...", text: $fileSetupSearchText)
                                         .textFieldStyle(RoundedBorderTextFieldStyle())
                                         .padding(.bottom, 8)
                                         .onChange(of: fileSetupSearchText) { newValue in
@@ -134,10 +136,10 @@ struct ChatMultiCreationView: View {
                                                 }
                                             }
                                         }
-                                    SearchableSection(
+                                    SearchableUserSection(
                                         title: "",
                                         items: filteredFileSetupTeam,
-                                        selectedItems: $fileSetupParticipants,
+                                        selectedEmails: $fileSetupParticipants,
                                         searchText: $fileSetupSearchText
                                     )
                                     .id("fileSetupResults")
@@ -146,6 +148,7 @@ struct ChatMultiCreationView: View {
                             .padding()
                             .padding(.bottom, 100)
                         }
+                        .addDoneButtonToKeyboard()
                     }
                 }
             }
@@ -162,27 +165,15 @@ struct ChatMultiCreationView: View {
                     Button("Create") {
                         Task {
                             do {
-                                // For each customer, create chats with them included in participants
-                                for customer in selectedCustomers {
-                                    var printTeamWithCustomer = printTeamParticipants
-                                    printTeamWithCustomer.insert(customer)
-                                    
-                                    var designTeamWithCustomer = designTeamParticipants
-                                    designTeamWithCustomer.insert(customer)
-                                    
-                                    var fileSetupTeamWithCustomer = fileSetupParticipants
-                                    fileSetupTeamWithCustomer.insert(customer)
-                                    
-                                    try await viewModel.createProjectChats(
-                                        selectedCustomers: [customer],
-                                        printTeamParticipants: printTeamWithCustomer,
-                                        designTeamParticipants: designTeamWithCustomer,
-                                        fileSetupParticipants: fileSetupTeamWithCustomer
-                                    )
-                                }
+                                try await viewModel.createProjectChats(
+                                    selectedCustomers: selectedCustomers,
+                                    printTeamParticipants: printTeamParticipants,
+                                    designTeamParticipants: designTeamParticipants,
+                                    fileSetupParticipants: fileSetupParticipants
+                                )
                                 dismiss()
                             } catch {
-                                // Handle error
+                                print("Error creating project chats: \(error.localizedDescription)")
                             }
                         }
                     }
@@ -196,10 +187,10 @@ struct ChatMultiCreationView: View {
     }
 }
 
-struct SearchableSection: View {
+struct SearchableUserSection: View {
     let title: String
-    let items: [String]
-    @Binding var selectedItems: Set<String>
+    let items: [User]
+    @Binding var selectedEmails: Set<String>
     @Binding var searchText: String
     
     var body: some View {
@@ -209,21 +200,21 @@ struct SearchableSection: View {
                     .font(.headline)
             }
             
-            ForEach(items, id: \.self) { item in
+            ForEach(items) { user in
                 HStack {
-                    Text(item)
+                    Text(user.name)
                     Spacer()
-                    if selectedItems.contains(item) {
+                    if selectedEmails.contains(user.email) {
                         Image(systemName: "checkmark")
                             .foregroundColor(.blue)
                     }
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    if selectedItems.contains(item) {
-                        selectedItems.remove(item)
+                    if selectedEmails.contains(user.email) {
+                        selectedEmails.remove(user.email)
                     } else {
-                        selectedItems.insert(item)
+                        selectedEmails.insert(user.email)
                     }
                     searchText = ""
                 }

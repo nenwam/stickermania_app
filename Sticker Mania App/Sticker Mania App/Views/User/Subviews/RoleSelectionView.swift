@@ -27,7 +27,7 @@ struct RoleSelectionView: View {
                     onRoleSelected(role)
                 }) {
                     HStack {
-                        Text(role.rawValue.capitalized)
+                        Text(role.rawValue.capitalized == "Accountmanager" ? "Account Manager" : role.rawValue.capitalized)
                         Spacer()
                         if role == currentRole {
                             Image(systemName: "checkmark")
